@@ -1,0 +1,13 @@
+{
+    "dart.lineLength": 140,
+    "[dart]": {
+        "editor.rulers": [
+            140
+        ],
+        "editor.formatOnSave": true,
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    }
+}
