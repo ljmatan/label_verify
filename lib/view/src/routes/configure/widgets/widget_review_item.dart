@@ -111,10 +111,9 @@ class _WidgetReviewItem extends StatelessWidget {
                   child: TextButton(
                     child: Icon(Icons.close),
                     onPressed: () async {
-                      final confirmed = await GsaWidgetOverlayConfirmation.open(
-                        context,
+                      final confirmed = await GsaWidgetOverlayConfirmation(
                         'Are you sure you want to remove "${reviewItem.label}"?',
-                      );
+                      ).openDialog(context);
                       if (confirmed) removeReviewItem();
                     },
                   ),

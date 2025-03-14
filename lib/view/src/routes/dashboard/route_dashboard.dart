@@ -276,12 +276,13 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                                                                     LvServiceFilesType.document,
                                                                   );
                                                                   if (file == null) return;
-                                                                  GsaWidgetOverlayContentBlocking.open(context);
+                                                                  const GsaWidgetOverlayContentBlocking().openDialog(context);
                                                                   try {
                                                                     if (file.pagesNumber != item.pages) {
                                                                       GsaWidgetOverlayAlert(
-                                                                        'Page number does not match.',
-                                                                      ).open(context);
+                                                                        title: 'Error',
+                                                                        message: 'Page number does not match.',
+                                                                      ).openDialog(context);
                                                                       return;
                                                                     }
                                                                     final storedFile = await LvServiceFiles.instance.storeFile(
@@ -311,7 +312,10 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                                                                     );
                                                                   } catch (e) {
                                                                     Navigator.pop(context);
-                                                                    GsaWidgetOverlayAlert('$e').open(context);
+                                                                    GsaWidgetOverlayAlert(
+                                                                      title: 'Error',
+                                                                      message: '$e',
+                                                                    ).openDialog(context);
                                                                   }
                                                                 },
                                                               ),
@@ -332,19 +336,21 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                                                                 icon: Icons.delete,
                                                                 tooltip: 'Delete the document entry.',
                                                                 onTap: () async {
-                                                                  final confirmed = await GsaWidgetOverlayConfirmation.open(
-                                                                    context,
+                                                                  final confirmed = await GsaWidgetOverlayConfirmation(
                                                                     'Are you sure you want to delete ${item.label}?',
-                                                                  );
+                                                                  ).openDialog(context);
                                                                   if (confirmed) {
-                                                                    GsaWidgetOverlayContentBlocking.open(context);
+                                                                    const GsaWidgetOverlayContentBlocking().openDialog(context);
                                                                     try {
                                                                       await LvServiceDatabase.instance.removeDocument(item.id);
                                                                       LvDataDocuments.instance.documentRemove(item);
                                                                       Navigator.pop(context);
                                                                     } catch (e) {
                                                                       Navigator.pop(context);
-                                                                      GsaWidgetOverlayAlert('$e').open(context);
+                                                                      GsaWidgetOverlayAlert(
+                                                                        title: 'Error',
+                                                                        message: '$e',
+                                                                      ).openDialog(context);
                                                                     }
                                                                   }
                                                                 },

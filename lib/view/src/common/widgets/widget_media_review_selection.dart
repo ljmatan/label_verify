@@ -270,7 +270,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                                             positionEndPercentX = _endPosition!.xPercent,
                                             positionEndPercentY = _endPosition!.yPercent;
                                         _resetPositionInfo();
-                                        GsaWidgetOverlayContentBlocking.open(context);
+                                        const GsaWidgetOverlayContentBlocking().openDialog(context);
                                         try {
                                           await showDialog(
                                             context: context,
@@ -289,7 +289,10 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                                           Navigator.pop(context);
                                         } catch (e) {
                                           Navigator.pop(context);
-                                          GsaWidgetOverlayAlert('$e').open(context);
+                                          GsaWidgetOverlayAlert(
+                                            title: 'Error',
+                                            message: '$e',
+                                          ).openDialog(context);
                                         }
                                       },
                           ),

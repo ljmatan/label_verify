@@ -79,13 +79,15 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
       }
       Navigator.pop(context);
       GsaWidgetOverlayAlert(
-        'Changes saved successfully.',
-      ).open(context);
+        title: 'Success',
+        message: 'Changes saved successfully.',
+      ).openDialog(context);
     } catch (e) {
       Navigator.pop(context);
       GsaWidgetOverlayAlert(
-        '$e',
-      ).open(context);
+        title: 'Error',
+        message: '$e',
+      ).openDialog(context);
     }
   }
 

@@ -93,7 +93,10 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
                       Navigator.popUntil(context, (route) => route.isFirst);
                     } catch (e) {
                       Navigator.popUntil(context, (route) => route.isFirst);
-                      GsaWidgetOverlayAlert('$e').open(context);
+                      GsaWidgetOverlayAlert(
+                        title: 'Error',
+                        message: '$e',
+                      ).openDialog(context);
                     }
                   }
                 },
