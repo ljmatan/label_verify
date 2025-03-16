@@ -3,7 +3,9 @@ import 'dart:typed_data' as dart_typed_data;
 import 'dart:ui' as dart_ui;
 import 'dart:math' as dart_math;
 
+import 'package:flutter/services.dart';
 import 'package:generic_shop_app_architecture/gsar.dart';
+import 'package:label_verify/models/src/model_ocr_result.dart';
 
 /// Utility methods implemented for image manipulation purposes.
 ///
@@ -57,10 +59,34 @@ class LvServiceImages extends GsaService {
       cropHeight.toInt(),
     );
 
-    // Convert ui.Image to Uint8List.
+    // Convert dart_ui.Image to Uint8List.
     dart_typed_data.ByteData? byteData = await croppedImage.toByteData(
       format: dart_ui.ImageByteFormat.png,
     );
     return byteData!.buffer.asUint8List();
+  }
+
+  /// Scans the input [image] data for any text content,
+  /// and returns the results as a list of findings.
+  ///
+  static Future<List<LvModelOcrResult>> ocrScan(
+    Uint8List image,
+  ) async {
+    final response = <String, dynamic>{};
+    return [
+      LvModelOcrResult.fromJson(response),
+    ];
+  }
+
+  /// Returns an image composed of 2 input images,
+  /// with any differences highlighted on this new image display.
+  ///
+  static Future<Uint8List> highlightDifferences(
+    Uint8List image1,
+    Uint8List image2,
+  ) async {
+    return Uint8List.fromList(
+      [],
+    );
   }
 }

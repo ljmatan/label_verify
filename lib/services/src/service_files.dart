@@ -29,7 +29,8 @@ enum LvServiceFilesExtensionTypes {
   pdf,
   png,
   jpg,
-  jpeg;
+  jpeg,
+  exe;
 }
 
 /// Available document upload type.
@@ -120,6 +121,44 @@ class LvServiceFiles extends GsaService {
     }
   }
 
+  /// Stores a single file to the device memory.
+  ///
+  Future<dart_io.File> storeStandaloneFile({
+    required Uint8List fileBytes,
+    required LvServiceFilesExtensionTypes fileType,
+  }) async {
+    String generateRandomFileName(int length) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      dart_math.Random random = dart_math.Random();
+      return String.fromCharCodes(
+        List.generate(
+          length,
+          (index) => chars.codeUnitAt(
+            random.nextInt(chars.length),
+          ),
+        ),
+      );
+    }
+
+    // Setup the application support directory location.
+    final appSupportDirectory = await path_provider.getApplicationSupportDirectory();
+    if (!await appSupportDirectory.exists()) await appSupportDirectory.create(recursive: true);
+
+    // Determine a valid filename.
+    String fileName = generateRandomFileName(20) + '.' + fileType.name;
+    String filePath = path.join(appSupportDirectory.path, fileName);
+    dart_io.File file = dart_io.File(filePath);
+    while (await file.exists()) {
+      fileName = generateRandomFileName(20) + '.' + fileType.name;
+      filePath = path.join(appSupportDirectory.path, fileName);
+      file = dart_io.File(filePath);
+    }
+
+    // Store the file to the device memory.
+    await file.writeAsBytes(fileBytes);
+    return file;
+  }
+
   /// Stores the specified [fileBytes] to a file of [fileType], returning the path of the newly-created file.
   ///
   Future<
@@ -130,40 +169,10 @@ class LvServiceFiles extends GsaService {
     required Uint8List fileBytes,
     required LvServiceFilesExtensionTypes fileType,
   }) async {
-    Future<dart_io.File> storeFile([Uint8List? bytes]) async {
-      String generateRandomFileName(int length) {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        dart_math.Random random = dart_math.Random();
-        return String.fromCharCodes(
-          List.generate(
-            length,
-            (index) => chars.codeUnitAt(
-              random.nextInt(chars.length),
-            ),
-          ),
-        );
-      }
-
-      // Setup the application support directory location.
-      final appSupportDirectory = await path_provider.getApplicationSupportDirectory();
-      if (!await appSupportDirectory.exists()) await appSupportDirectory.create(recursive: true);
-
-      // Determine a valid filename.
-      String fileName = generateRandomFileName(20) + '.' + fileType.name;
-      String filePath = path.join(appSupportDirectory.path, fileName);
-      dart_io.File file = dart_io.File(filePath);
-      while (await file.exists()) {
-        fileName = generateRandomFileName(20) + '.' + fileType.name;
-        filePath = path.join(appSupportDirectory.path, fileName);
-        file = dart_io.File(filePath);
-      }
-
-      // Store the file to the device memory.
-      await file.writeAsBytes(bytes ?? fileBytes);
-      return file;
-    }
-
-    final file = await storeFile();
+    final file = await storeStandaloneFile(
+      fileBytes: fileBytes,
+      fileType: fileType,
+    );
 
     // Set file image displays and their appropriate path values.
     final fileImageDisplayPaths = <String>{};
@@ -181,7 +190,10 @@ class LvServiceFiles extends GsaService {
           fileBytes,
         ),
       );
-      final storedConvertedFile = await storeFile(convertedFile);
+      final storedConvertedFile = await storeStandaloneFile(
+        fileBytes: convertedFile,
+        fileType: fileType,
+      );
       fileImageDisplayPaths.add(storedConvertedFile.path);
     }
     if (fileType == LvServiceFilesExtensionTypes.pdf) {
@@ -189,7 +201,10 @@ class LvServiceFiles extends GsaService {
         fileBytes,
       );
       for (final convertedFile in convertedFiles) {
-        final storedConvertedFile = await storeFile(convertedFile);
+        final storedConvertedFile = await storeStandaloneFile(
+          fileBytes: convertedFile,
+          fileType: fileType,
+        );
         fileImageDisplayPaths.add(storedConvertedFile.path);
       }
     }

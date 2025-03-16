@@ -1,0 +1,4 @@
+sanic
+base64
+pytesseract
+opencv-python
