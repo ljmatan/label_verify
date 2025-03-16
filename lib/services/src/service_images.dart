@@ -6,6 +6,7 @@ import 'dart:math' as dart_math;
 import 'package:flutter/services.dart';
 import 'package:generic_shop_app_architecture/gsar.dart';
 import 'package:label_verify/models/src/model_ocr_result.dart';
+import 'package:label_verify/services/src/service_python.dart';
 
 /// Utility methods implemented for image manipulation purposes.
 ///
@@ -72,10 +73,7 @@ class LvServiceImages extends GsaService {
   static Future<List<LvModelOcrResult>> ocrScan(
     Uint8List image,
   ) async {
-    final response = <String, dynamic>{};
-    return [
-      LvModelOcrResult.fromJson(response),
-    ];
+    return await LvServicePythonRuntime.instance.ocrScan(image);
   }
 
   /// Returns an image composed of 2 input images,
@@ -85,8 +83,6 @@ class LvServiceImages extends GsaService {
     Uint8List image1,
     Uint8List image2,
   ) async {
-    return Uint8List.fromList(
-      [],
-    );
+    return await LvServicePythonRuntime.instance.highlightDifferences(image1, image2);
   }
 }

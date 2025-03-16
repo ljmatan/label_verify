@@ -1,7 +1,9 @@
 import 'dart:io' as dart_io;
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart' as services;
 import 'package:generic_shop_app_architecture/gsar.dart';
+import 'package:label_verify/models/src/model_ocr_result.dart';
 import 'package:label_verify/services/src/service_cache.dart';
 import 'package:label_verify/services/src/service_files.dart';
 import 'package:label_verify/services/src/service_http.dart';
@@ -106,5 +108,24 @@ class LvServicePythonRuntime extends GsaService {
       ],
     );
     await _secureConnection();
+  }
+
+  /// Scans the input [image] data for any text content,
+  /// and returns the results as a list of findings.
+  ///
+  Future<List<LvModelOcrResult>> ocrScan(
+    Uint8List image,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  /// Returns an image composed of 2 input images,
+  /// with any differences highlighted on this new image display.
+  ///
+  Future<Uint8List> highlightDifferences(
+    Uint8List image1,
+    Uint8List image2,
+  ) async {
+    throw UnimplementedError();
   }
 }
