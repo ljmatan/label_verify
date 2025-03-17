@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:generic_shop_app_content/gsac.dart';
 import 'package:label_verify/config.dart';
+import 'package:label_verify/view/src/routes/dashboard/route_dashboard.dart';
 
 /// Splash route displayed on every app startup.
 ///
@@ -44,7 +45,11 @@ class _LvRouteSplashState extends State<LvRouteSplash> {
                           } else {
                             _dotNumber = 0;
                           }
-                          if (mounted) setState(() {});
+                          try {
+                            setState(() {});
+                          } catch (e) {
+                            // Not mounted.
+                          }
                         },
                       );
                       return Text.rich(
@@ -76,6 +81,15 @@ class _LvRouteSplashState extends State<LvRouteSplash> {
               ),
             );
           }
+
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LvRouteDashboard()),
+                (route) => false,
+              );
+            },
+          );
 
           return const SizedBox();
         },

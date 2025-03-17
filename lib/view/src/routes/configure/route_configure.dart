@@ -78,7 +78,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
         }
       }
       Navigator.pop(context);
-      GsaWidgetOverlayAlert(
+      const GsaWidgetOverlayAlert(
         title: 'Success',
         message: 'Changes saved successfully.',
       ).openDialog(context);
@@ -96,7 +96,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
     return Scaffold(
       body: Column(
         children: [
-          LvWidgetNavigationBar(
+          const LvWidgetNavigationBar(
             label: 'Configure',
           ),
           Expanded(
@@ -104,7 +104,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
               future: _getReviewItems,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
@@ -154,8 +154,8 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
                                             Tooltip(
                                               message: 'Confirm all of the current changes without exiting the screen.',
                                               child: FilledButton.icon(
-                                                label: Text('PUBLISH'),
-                                                icon: Icon(Icons.save),
+                                                label: const Text('PUBLISH'),
+                                                icon: const Icon(Icons.save),
                                                 onPressed: () async {
                                                   await _saveChanges();
                                                 },
@@ -165,7 +165,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
                                             child: Text(
                                               widget.document.fileName.toUpperCase(),
                                               textAlign: TextAlign.end,
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.w300,
                                                 fontSize: 12,
@@ -185,7 +185,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                               children: [
                                 if (!_reviewItemsSubmitted) ...[
-                                  Text(
+                                  const Text(
                                     'To start adding parameters, simply click and drag across any media section you want to track. '
                                     'This specific selection is later used when reviewing future document changes.\n\n'
                                     'You can adjust the image view by zooming and panning using the button controls provided on the screen.',

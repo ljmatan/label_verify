@@ -22,12 +22,13 @@ class LvServiceHttp {
     Map<String, String>? headers,
     Duration? timeout,
   }) async {
-    final response = await http
-        .get(
-          url,
-          headers: headers,
-        )
-        .timeout(timeout ?? _timeout);
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        if (headers != null) ...headers,
+      },
+    ).timeout(timeout ?? _timeout);
     dynamic decodedBody;
     try {
       decodedBody = jsonDecode(response.body);
@@ -50,13 +51,14 @@ class LvServiceHttp {
     Map<String, String>? headers,
     Duration? timeout,
   }) async {
-    final response = await http
-        .post(
-          url,
-          body: jsonEncode(body),
-          headers: headers,
-        )
-        .timeout(timeout ?? _timeout);
+    final response = await http.post(
+      url,
+      body: jsonEncode(body),
+      headers: {
+        'Content-Type': 'application/json',
+        if (headers != null) ...headers,
+      },
+    ).timeout(timeout ?? _timeout);
     dynamic decodedBody;
     try {
       decodedBody = jsonDecode(response.body);

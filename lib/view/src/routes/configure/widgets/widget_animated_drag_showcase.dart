@@ -22,12 +22,12 @@ class _WidgetAnimatedDragShowcaseState extends State<_WidgetAnimatedDragShowcase
       duration: const Duration(seconds: 3),
     );
     _startAnimation = Tween<Offset>(
-      begin: Offset(60, 100),
-      end: Offset(60, 100),
+      begin: const Offset(60, 100),
+      end: const Offset(60, 100),
     ).animate(_controller);
     _endAnimation = Tween<Offset>(
-      begin: Offset(60, 100),
-      end: Offset(240, 240),
+      begin: const Offset(60, 100),
+      end: const Offset(240, 240),
     ).animate(
       CurvedAnimation(
         parent: _controller,
@@ -51,7 +51,7 @@ class _WidgetAnimatedDragShowcaseState extends State<_WidgetAnimatedDragShowcase
             future: widget.document.getFileImageDisplays(),
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(),
                 );
               }
@@ -90,7 +90,7 @@ class _WidgetAnimatedDragShowcaseState extends State<_WidgetAnimatedDragShowcase
                     _endAnimation.value.dx - 15,
                     _endAnimation.value.dy - 15,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.ads_click,
                     size: 30,
                     color: Colors.blue,

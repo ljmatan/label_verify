@@ -53,7 +53,7 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
         ),
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           }
@@ -68,7 +68,7 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
 
           return Column(
             children: [
-              LvWidgetNavigationBar(
+              const LvWidgetNavigationBar(
                 label: 'Dashboard',
                 includeBackButton: false,
               ),
@@ -165,19 +165,27 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                           ],
                         ),
                         const Divider(height: 30),
-                        Text(
-                          'Review and edit the available document collection, set configuration review options, '
-                          'and update with latest revisions.',
-                        ),
-                        const SizedBox(height: 20),
+                        if (snapshot.data?.isNotEmpty == true) ...[
+                          const Text(
+                            'Review and edit the available document collection, set configuration review options, '
+                            'and update with latest revisions.',
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                         if (snapshot.data?.isNotEmpty != true)
-                          Text(
-                            'No documents available for review.\n\n'
-                            'To transfer documents using the program, you may start by using the "NEW DOCUMENT" button. '
-                            'Supported media formats: PDF, PNG, JPG, SVG.\n\n'
-                            'After transferring the documents, you may review them by visiting the "REVIEW" menu or clicking on them.',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w300,
+                          const Text.rich(
+                            TextSpan(
+                              text: 'No documents available for review.\n\n',
+                              children: [
+                                TextSpan(
+                                  text: 'To transfer documents using the program, you may start by using the "NEW DOCUMENT" button. '
+                                      'Supported media formats: PDF, PNG, JPG, SVG.\n\n'
+                                      'After transferring the documents, you may review them by visiting the "REVIEW" menu or clicking on them.',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                              ],
                             ),
                           )
                         else
@@ -204,7 +212,7 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                                     future: item.getFileImageDisplays(),
                                     builder: (context, snapshot) {
                                       if (snapshot.connectionState != ConnectionState.done) {
-                                        return Center(
+                                        return const Center(
                                           child: CircularProgressIndicator(),
                                         );
                                       }
@@ -279,7 +287,7 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                                                                   const GsaWidgetOverlayContentBlocking().openDialog(context);
                                                                   try {
                                                                     if (file.pagesNumber != item.pages) {
-                                                                      GsaWidgetOverlayAlert(
+                                                                      const GsaWidgetOverlayAlert(
                                                                         title: 'Error',
                                                                         message: 'Page number does not match.',
                                                                       ).openDialog(context);

@@ -527,7 +527,7 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
     super.initState();
     _getCroppedImage = widget.document.getFileImageDisplays().then(
       (value) async {
-        final croppedImage = await LvServiceImages.cropImage(
+        final croppedImage = await LvServiceImages.instance.cropImage(
           value[widget.page],
           widget.positionStartPercentX,
           widget.positionStartPercentY,
@@ -560,7 +560,7 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
               ),
               const SizedBox(height: 10),
               ConstrainedBox(
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   minHeight: 0,
                   maxHeight: 300,
                 ),
@@ -570,7 +570,7 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
                     future: _getCroppedImage,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState != ConnectionState.done) {
-                        return Center(
+                        return const Center(
                           child: CircularProgressIndicator(),
                         );
                       }
@@ -605,7 +605,7 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _textControllerTitle,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Title',
                 ),
@@ -619,7 +619,7 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: _textControllerDescription,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Description (optional)',
                 ),
@@ -650,12 +650,12 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
                         'visual media representation, such as brand logo. Any subsequent changes for the type must be verified.',
                       ),
                     }) ...[
-                      TextSpan(
+                      const TextSpan(
                         text: '- ',
                       ),
                       TextSpan(
                         text: entry.$1,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -674,7 +674,7 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField(
-                hint: Text('Content Type'),
+                hint: const Text('Content Type'),
                 isExpanded: true,
                 elevation: 0,
                 padding: EdgeInsets.zero,
@@ -700,14 +700,14 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                    child: Text('Cancel'),
+                    child: const Text('Cancel'),
                     onPressed: () {
                       Navigator.pop(context);
                     },
                   ),
                   const SizedBox(width: 10),
                   FilledButton(
-                    child: Text('Submit'),
+                    child: const Text('Submit'),
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         final reviewItem = LvModelDocumentReviewConfiguration(

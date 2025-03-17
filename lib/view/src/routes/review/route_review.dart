@@ -38,7 +38,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
     return Scaffold(
       body: Column(
         children: [
-          LvWidgetNavigationBar(
+          const LvWidgetNavigationBar(
             label: 'Review',
           ),
           Expanded(
@@ -48,8 +48,8 @@ class _LvRouteReviewState extends State<LvRouteReview> {
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return Center(
-                    child: const CircularProgressIndicator(),
+                  return const Center(
+                    child: CircularProgressIndicator(),
                   );
                 }
 
@@ -91,7 +91,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                         child: Text(
                                           widget.document.label.toUpperCase(),
                                           textAlign: TextAlign.end,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.w300,
                                             fontSize: 12,
@@ -158,6 +158,47 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                 return ListView(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                                   children: [
+                                    AspectRatio(
+                                      aspectRatio: 16 / 10,
+                                      child: FutureBuilder(
+                                        future: widget.document.getFileImageDisplays().then(
+                                          (documentImageDisplays) async {
+                                            if (documentImageDisplays.isEmpty) {
+                                              throw Exception('Document image displays is empty.');
+                                            }
+                                            final comparisonDocumentImageDisplays = await widget.comparisonDocument.getFileImageDisplays();
+                                            if (comparisonDocumentImageDisplays.isEmpty) {
+                                              throw Exception('Comparison document image displays is empty.');
+                                            }
+                                            return await LvServiceImages.instance.highlightDifferences(
+                                              documentImageDisplays.first,
+                                              comparisonDocumentImageDisplays.first,
+                                            );
+                                          },
+                                        ),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState != ConnectionState.done) {
+                                            return const Center(
+                                              child: CircularProgressIndicator(),
+                                            );
+                                          }
+
+                                          if (snapshot.hasError) {
+                                            return Center(
+                                              child: GsaWidgetError(
+                                                snapshot.error.toString(),
+                                              ),
+                                            );
+                                          }
+
+                                          return Image.memory(
+                                            snapshot.data!,
+                                            width: MediaQuery.of(context).size.width,
+                                            height: MediaQuery.of(context).size.height,
+                                          );
+                                        },
+                                      ),
+                                    ),
                                     for (final reviewItem in snapshot.data!)
                                       Card(
                                         color: Colors.white,
@@ -191,7 +232,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                                         ),
                                                         builder: (context, snapshot) {
                                                           if (snapshot.connectionState != ConnectionState.done) {
-                                                            return Center(
+                                                            return const Center(
                                                               child: CircularProgressIndicator(),
                                                             );
                                                           }
@@ -217,7 +258,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                                     top: 10,
                                                     right: 10,
                                                     child: ElevatedButton(
-                                                      child: Icon(Icons.zoom_in),
+                                                      child: const Icon(Icons.zoom_in),
                                                       onPressed: () {},
                                                     ),
                                                   ),
@@ -229,19 +270,19 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                                   Expanded(
                                                     child: Text(
                                                       reviewItem.label,
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 15,
                                                       ),
                                                     ),
                                                   ),
                                                   TextButton(
-                                                    child: Icon(Icons.close),
+                                                    child: const Icon(Icons.close),
                                                     onPressed: () {},
                                                   ),
                                                   const SizedBox(width: 6),
                                                   FilledButton(
-                                                    child: Icon(Icons.check),
+                                                    child: const Icon(Icons.check),
                                                     onPressed: () {},
                                                   ),
                                                 ],

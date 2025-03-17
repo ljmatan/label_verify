@@ -50,7 +50,7 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
       title: 'Document Upload',
       children: _mediaFile != null
           ? [
-              Text(
+              const Text(
                 'Enter the document label in below input field before proceeding:',
               ),
               const SizedBox(height: 14),
@@ -67,7 +67,7 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
               ),
               const SizedBox(height: 14),
               FilledButton.icon(
-                label: Text('Confirm'),
+                label: const Text('Confirm'),
                 onPressed: () async {
                   if (_formKey.currentState?.validate() == true) {
                     LvDialogContentBlocking.display();
@@ -103,15 +103,15 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
               ),
             ]
           : [
-              Text(
+              const Text(
                 'Document files are transferred to the server for processing, '
                 'either by creating new document entries, or by updating existing ones with new revisions.\n\n'
                 'To upload a new document, you can:',
               ),
               const SizedBox(height: 14),
               FilledButton.icon(
-                label: Text('Select a File'),
-                icon: Icon(Icons.upload),
+                label: const Text('Select a File'),
+                icon: const Icon(Icons.upload),
                 onPressed: () async {
                   final mediaFile = await LvServiceFiles.instance.getFile(
                     LvServiceFilesType.document,
@@ -122,7 +122,7 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
               ),
               if (LvDataDocuments.instance.collection.isNotEmpty) ...[
                 const SizedBox(height: 14),
-                Text(
+                const Text(
                   'Or you can select from the existing documents to update with the latest content:',
                 ),
                 const SizedBox(height: 14),
@@ -148,7 +148,7 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
                         ),
                         const SizedBox(width: 10),
                         FilledButton(
-                          child: Text('CONFIRM'),
+                          child: const Text('CONFIRM'),
                           onPressed: _selectedFileId != null
                               ? () async {
                                   Navigator.pop(context);
@@ -161,7 +161,7 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
                 ),
               ],
               const SizedBox(height: 14),
-              Text(
+              const Text(
                 'After uploading the document, review parameters can be configured through the "CONFIGURE" menu.',
               ),
             ],

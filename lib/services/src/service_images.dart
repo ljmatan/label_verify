@@ -11,10 +11,14 @@ import 'package:label_verify/services/src/service_python.dart';
 /// Utility methods implemented for image manipulation purposes.
 ///
 class LvServiceImages extends GsaService {
+  LvServiceImages._();
+
+  static final instance = LvServiceImages._();
+
   /// Crops the given [imageData] according to the specified coordinates,
   /// returning the display value of this cropped image.
   ///
-  static Future<dart_typed_data.Uint8List> cropImage(
+  Future<dart_typed_data.Uint8List> cropImage(
     dart_typed_data.Uint8List imageData,
     double positionStartPercentX,
     double positionStartPercentY,
@@ -70,7 +74,7 @@ class LvServiceImages extends GsaService {
   /// Scans the input [image] data for any text content,
   /// and returns the results as a list of findings.
   ///
-  static Future<List<LvModelOcrResult>> ocrScan(
+  Future<List<LvModelOcrResult>> ocrScan(
     Uint8List image,
   ) async {
     return await LvServicePythonRuntime.instance.ocrScan(image);
@@ -79,7 +83,7 @@ class LvServiceImages extends GsaService {
   /// Returns an image composed of 2 input images,
   /// with any differences highlighted on this new image display.
   ///
-  static Future<Uint8List> highlightDifferences(
+  Future<Uint8List> highlightDifferences(
     Uint8List image1,
     Uint8List image2,
   ) async {

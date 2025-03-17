@@ -85,7 +85,7 @@ class LvModelDocumentReviewConfiguration {
   Future<dart_typed_data.Uint8List> getImageDisplay({
     required Uint8List originalImage,
   }) async {
-    imageDisplay ??= await LvServiceImages.cropImage(
+    imageDisplay ??= await LvServiceImages.instance.cropImage(
       originalImage,
       positionStartPercentX,
       positionStartPercentY,

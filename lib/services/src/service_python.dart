@@ -64,21 +64,22 @@ class LvServicePythonRuntime extends GsaService {
 
   /// Method used for scanning available device ports for Python server connection.
   ///
-  Future<int> _findAvailablePort() async {
+  Future<void> _findAvailablePort() async {
     final dynamicPortRanges = (49152, 65535);
     final scanPortRanges = List.generate(
       dynamicPortRanges.$2 - dynamicPortRanges.$1,
       (index) => dynamicPortRanges.$1 + index,
     );
-    for (var port in scanPortRanges) {
+    for (final port in scanPortRanges) {
       try {
-        var server = await dart_io.ServerSocket.bind(
+        final server = await dart_io.ServerSocket.bind(
           dart_io.InternetAddress.loopbackIPv4,
           port,
         );
         await server.close();
+        _port = port;
         _serverAddress = 'http://localhost:$_port';
-        return port;
+        return;
       } catch (e) {
         // Port is in use, try the next one.
       }
@@ -110,8 +111,8 @@ class LvServicePythonRuntime extends GsaService {
   @override
   Future<void> init() async {
     await super.init();
+    await _findAvailablePort();
     await _processExecutable();
-    _port = await _findAvailablePort();
     dart_io.Process.run(
       _executablePath,
       [
@@ -133,11 +134,11 @@ class LvServicePythonRuntime extends GsaService {
         'imageBase64': base64Encode(image),
       },
     );
-    if (response is! Iterable) {
-      throw Exception('Response type not Iterable: ${response.runtimeType}');
+    if (response['data'] is! Iterable) {
+      throw Exception('Response[\'data\'] type not Iterable: ${response.runtimeType}');
     }
     return [
-      for (final jsonEntry in response)
+      for (final jsonEntry in response['data'])
         LvModelOcrResult.fromJson(
           Map<String, dynamic>.from(jsonEntry),
         ),

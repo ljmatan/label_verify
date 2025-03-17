@@ -54,7 +54,7 @@ class _WidgetReviewItem extends StatelessWidget {
                       ),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState != ConnectionState.done) {
-                          return Center(
+                          return const Center(
                             child: CircularProgressIndicator(),
                           );
                         }
@@ -66,6 +66,16 @@ class _WidgetReviewItem extends StatelessWidget {
                             ),
                           );
                         }
+
+                        LvServiceImages.instance.ocrScan(snapshot.data!).then(
+                          (value) {
+                            print(
+                              value.map(
+                                (element) => element.toJson(),
+                              ),
+                            );
+                          },
+                        );
 
                         return ClipRRect(
                           borderRadius: BorderRadius.circular(4),
@@ -90,14 +100,14 @@ class _WidgetReviewItem extends StatelessWidget {
                     children: [
                       Text(
                         reviewItem.label,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
                       ),
                       Text(
                         reviewItem.type.displayName,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.w300,
                           color: Colors.grey,
                           fontSize: 10,
@@ -109,7 +119,7 @@ class _WidgetReviewItem extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: TextButton(
-                    child: Icon(Icons.close),
+                    child: const Icon(Icons.close),
                     onPressed: () async {
                       final confirmed = await GsaWidgetOverlayConfirmation(
                         'Are you sure you want to remove "${reviewItem.label}"?',
