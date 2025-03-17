@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' as dart_io;
 import 'dart:typed_data';
 
@@ -57,6 +58,10 @@ class LvServicePythonRuntime extends GsaService {
   ///
   late int _port;
 
+  /// The address of the Python server running on this device.
+  ///
+  late String _serverAddress;
+
   /// Method used for scanning available device ports for Python server connection.
   ///
   Future<int> _findAvailablePort() async {
@@ -72,6 +77,7 @@ class LvServicePythonRuntime extends GsaService {
           port,
         );
         await server.close();
+        _serverAddress = 'http://localhost:$_port';
         return port;
       } catch (e) {
         // Port is in use, try the next one.
@@ -91,9 +97,7 @@ class LvServicePythonRuntime extends GsaService {
       // Below method will throw an error unless a 200 status code response is received.
       try {
         await LvServiceHttp.instance.get(
-          Uri.parse(
-            'http://localhost:$_port/',
-          ),
+          Uri.parse(_serverAddress),
           timeout: const Duration(milliseconds: 100),
         );
         loading = false;
@@ -117,17 +121,27 @@ class LvServicePythonRuntime extends GsaService {
     await _confirmConnection();
   }
 
-  /// The host address Python server is running on.
-  ///
-  final _localhostAddress = 'http://127.0.0.1';
-
   /// Scans the input [image] data for any text content,
   /// and returns the results as a list of findings.
   ///
   Future<List<LvModelOcrResult>> ocrScan(
     Uint8List image,
   ) async {
-    throw UnimplementedError();
+    final response = await LvServiceHttp.instance.post(
+      Uri.parse('$_serverAddress/img/ocr'),
+      {
+        'imageBase64': base64Encode(image),
+      },
+    );
+    if (response is! Iterable) {
+      throw Exception('Response type not Iterable: ${response.runtimeType}');
+    }
+    return [
+      for (final jsonEntry in response)
+        LvModelOcrResult.fromJson(
+          Map<String, dynamic>.from(jsonEntry),
+        ),
+    ];
   }
 
   /// Returns an image composed of 2 input images,
@@ -137,6 +151,16 @@ class LvServicePythonRuntime extends GsaService {
     Uint8List image1,
     Uint8List image2,
   ) async {
-    throw UnimplementedError();
+    final response = await LvServiceHttp.instance.post(
+      Uri.parse('$_serverAddress/img/ocr'),
+      {
+        'image1Base64': base64Encode(image1),
+        'image2Base64': base64Encode(image2),
+      },
+    );
+    if (response['data'] is! String) {
+      throw Exception('Response[\'data\'] type not String: ${response['data'].runtimeType}');
+    }
+    return base64Decode(response['data']);
   }
 }

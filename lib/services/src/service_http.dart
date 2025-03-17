@@ -41,4 +41,33 @@ class LvServiceHttp {
     }
     return decodedBody;
   }
+
+  /// Sends an HTTP GET request with the given headers to the given URL.
+  ///
+  Future<dynamic> post(
+    Uri url,
+    Map<String, dynamic> body, {
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    final response = await http
+        .post(
+          url,
+          body: jsonEncode(body),
+          headers: headers,
+        )
+        .timeout(timeout ?? _timeout);
+    dynamic decodedBody;
+    try {
+      decodedBody = jsonDecode(response.body);
+    } catch (e) {
+      // Do nothing, response type is not in JSON format.
+    }
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Error making POST request to $url:\n${decodedBody['message'] ?? response.body}',
+      );
+    }
+    return decodedBody;
+  }
 }
