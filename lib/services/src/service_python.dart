@@ -152,7 +152,7 @@ class LvServicePythonRuntime extends GsaService {
     Uint8List image2,
   ) async {
     final response = await LvServiceHttp.instance.post(
-      Uri.parse('$_serverAddress/img/ocr'),
+      Uri.parse('$_serverAddress/img/diff'),
       {
         'image1Base64': base64Encode(image1),
         'image2Base64': base64Encode(image2),
