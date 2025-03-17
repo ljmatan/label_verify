@@ -32,7 +32,7 @@ class LvServicePythonRuntime extends GsaService {
   Future<void> _processExecutable() async {
     final assetId = 'assets/bin/python';
     final cachedExecutablePath = LvServiceCache.instance.getString(assetId);
-    if (cachedExecutablePath != null) {
+    if (const String.fromEnvironment('binAssetForceUpdate').toLowerCase() != 'true' && cachedExecutablePath != null) {
       _executablePath = cachedExecutablePath;
       return;
     }
@@ -40,10 +40,17 @@ class LvServicePythonRuntime extends GsaService {
     final executableBytes = executableByteData.buffer.asUint8List();
     final storedFile = await LvServiceFiles.instance.storeStandaloneFile(
       fileBytes: executableBytes,
-      fileType: LvServiceFilesExtensionTypes.exe,
+      fileType: LvServiceFilesExtensionTypes.exec,
     );
     await LvServiceCache.instance.setString(assetId, storedFile.path);
     _executablePath = storedFile.path;
+    await dart_io.Process.run(
+      'chmod',
+      [
+        '+x',
+        _executablePath,
+      ],
+    );
   }
 
   /// Free port used for connection with the Python server.
@@ -76,7 +83,7 @@ class LvServicePythonRuntime extends GsaService {
   /// Pings the local device network with the specified [_port] info
   /// until a connection is confirmed as being established.
   ///
-  Future<void> _secureConnection() async {
+  Future<void> _confirmConnection() async {
     bool loading = true;
     while (loading) {
       // Debounce the method for the specified duration.
@@ -107,8 +114,12 @@ class LvServicePythonRuntime extends GsaService {
         _port.toString(),
       ],
     );
-    await _secureConnection();
+    await _confirmConnection();
   }
+
+  /// The host address Python server is running on.
+  ///
+  final _localhostAddress = 'http://127.0.0.1';
 
   /// Scans the input [image] data for any text content,
   /// and returns the results as a list of findings.

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:label_verify/services/services.dart';
+import 'package:label_verify/services/src/service_cache.dart';
+import 'package:label_verify/services/src/service_python.dart';
 
 /// Project configuration used during the runtime.
 ///
@@ -26,5 +28,7 @@ class LvConfig {
   Future<void> init() async {
     WidgetsFlutterBinding.ensureInitialized();
     await LvServiceDatabase.instance.init();
+    await LvServiceCache.instance.init();
+    await LvServicePythonRuntime.instance.init();
   }
 }

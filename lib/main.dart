@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:label_verify/config.dart';
-import 'package:label_verify/view/src/routes/dashboard/route_dashboard.dart';
+import 'package:label_verify/view/src/routes/splash/route_splash.dart';
 
 void main() async {
-  await LvConfig.instance.init();
   runApp(const LvApp());
 }
 
@@ -26,7 +24,7 @@ class LvApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      home: LvRouteDashboard(),
+      home: const LvRouteSplash(),
       theme: ThemeData(
         primaryColor: Colors.grey.shade900,
       ),

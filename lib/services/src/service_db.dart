@@ -37,7 +37,6 @@ class LvServiceDatabase extends GsaService {
     final databaseFactory = sqflite_ffi.databaseFactoryFfi;
     final appDocumentsDir = await path_provider.getApplicationSupportDirectory();
     final dbPath = path.join(appDocumentsDir.path, 'databases', 'labelverify.db');
-    print('DB path: ' + dbPath);
     db = await databaseFactory.openDatabase(dbPath);
     for (final table in <String>{
       _documentTableId,

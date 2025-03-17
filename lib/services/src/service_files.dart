@@ -30,7 +30,11 @@ enum LvServiceFilesExtensionTypes {
   png,
   jpg,
   jpeg,
-  exe;
+  exec;
+
+  String get filePathExtension {
+    return '.$name';
+  }
 }
 
 /// Available document upload type.
@@ -145,17 +149,22 @@ class LvServiceFiles extends GsaService {
     if (!await appSupportDirectory.exists()) await appSupportDirectory.create(recursive: true);
 
     // Determine a valid filename.
-    String fileName = generateRandomFileName(20) + '.' + fileType.name;
+    String fileName = generateRandomFileName(20) + fileType.filePathExtension;
     String filePath = path.join(appSupportDirectory.path, fileName);
     dart_io.File file = dart_io.File(filePath);
     while (await file.exists()) {
-      fileName = generateRandomFileName(20) + '.' + fileType.name;
+      fileName = generateRandomFileName(20) + fileType.filePathExtension;
       filePath = path.join(appSupportDirectory.path, fileName);
       file = dart_io.File(filePath);
     }
 
     // Store the file to the device memory.
     await file.writeAsBytes(fileBytes);
+
+    if (!await file.exists()) {
+      throw 'File not written successfully: ${file.path}';
+    }
+
     return file;
   }
 
