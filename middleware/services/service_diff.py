@@ -27,7 +27,13 @@ class ServiceDiff:
 
         # Highlight differences in red.
         highlighted = img1.copy()
-        highlighted[np.where(mask == 255)] = [0, 0, 255]
+
+        # Use a correct mask condition
+        highlighted[mask == 255] = [
+            0,
+            0,
+            255,
+        ]  # Only apply to pixels where the mask is white
 
         # Return the generated image.
         return highlighted

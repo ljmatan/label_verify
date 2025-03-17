@@ -1,104 +1,108 @@
-from sanic import Sanic, response
+import sys
+from flask import Flask, request, jsonify
 from services.service_img import ServiceImg
 from services.service_ocr import ServiceOcr
 from services.service_diff import ServiceDiff
 
-app = Sanic("LabelVerifyMiddleware")
+app = Flask("LabelVerifyMiddleware")
 
 
-@app.get("/")
-async def home(request):
-    return response.json(
-        {
-            "message": "Status OK.",
-        }
-    )
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "Status OK."})
 
 
-@app.post("img/ocr")
-async def img_ocr(request):
+@app.route("/img/ocr", methods=["POST"])
+def img_ocr():
     try:
-        # Extract and parsebase64 data from JSON request.
-        image_data_base64 = request.json.get("imageBase64")
+        data = request.get_json()
+        image_data_base64 = data.get("imageBase64")
         if image_data_base64 is None:
-            return response.json(
-                {
-                    "message": "Image input data is missing from the request body.",
-                },
-                status=400,
+            return (
+                jsonify(
+                    {
+                        "message": "Image input data is missing from the request body.",
+                    }
+                ),
+                400,
             )
 
-        # Decode the image data.
+        # Decode image and extract OCR text
         image = ServiceImg.decode_base64_image(image_data_base64)
-
-        # Get the OCR scan results.
         ocr_scan_results = ServiceOcr.extract_text(image)
 
-        return response.json(
+        return jsonify(
             {
                 "data": ocr_scan_results,
             }
         )
 
     except Exception as e:
-        return response.json(
-            {
-                "message": str(e),
-            },
-            status=500,
+        return (
+            jsonify(
+                {
+                    "message": str(e),
+                }
+            ),
+            500,
         )
 
 
-@app.post("img/diff")
-async def img_diff(request):
+@app.route("/img/diff", methods=["POST"])
+def img_diff():
     try:
-        # Extract and parsebase64 data from JSON request.
-        image1_data_base64 = request.json.get("image1Base64")
-        image2_data_base64 = request.json.get("image1Base64")
-        if image1_data_base64 is None or image2_data_base64 is None:
-            return response.json(
-                {
-                    "message": "Image input data is missing from the request body.",
-                },
-                status=400,
+        data = request.get_json()
+        image1_data_base64 = data.get("image1Base64")
+        image2_data_base64 = data.get("image2Base64")
+
+        if not image1_data_base64 or not image2_data_base64:
+            return (
+                jsonify(
+                    {
+                        "message": "Image input data is missing from the request body.",
+                    }
+                ),
+                400,
             )
 
         img1 = ServiceImg.decode_base64_image(image1_data_base64)
         img2 = ServiceImg.decode_base64_image(image2_data_base64)
 
-        imgDiff = ServiceDiff.highlight_image_differences(img1, img2)
+        img_diff = ServiceDiff.highlight_image_differences(img1, img2)
+        img_diff_base64 = ServiceImg.encode_image_to_base64(img_diff)
 
-        imgDiffBase64Encoded = ServiceImg.encode_image_to_base64(imgDiff)
-
-        return response.json(
+        return jsonify(
             {
-                "data": imgDiffBase64Encoded,
+                "data": img_diff_base64,
             }
         )
 
     except Exception as e:
-        return response.json(
-            {
-                "message": str(e),
-            },
-            status=500,
+        return (
+            jsonify(
+                {
+                    "message": str(e),
+                }
+            ),
+            500,
         )
 
 
-@app.route("/<path:path>")
-async def catch_all(request, path):
-    return response.json(
-        {
-            "message": f"Path '{path}' not found.",
-        },
-        status=404,
+@app.route("/<path:path>", methods=["GET", "POST"])
+def catch_all(path):
+    return (
+        jsonify(
+            {
+                "message": f"Path '{path}' not found.",
+            }
+        ),
+        404,
     )
 
 
-@app.listener("before_server_start")
-async def on_server_start(app, loop):
-    print("Python Runtime Server Success")
-
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=50000)
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <server_port>")
+        sys.exit(1)
+    port_number = sys.argv[1]
+    app.run(host="0.0.0.0", port=int(port_number))

@@ -1,4 +1,5 @@
-sanic
+Flask
+sys
 base64
 pytesseract
 opencv-python
