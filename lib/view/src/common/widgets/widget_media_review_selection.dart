@@ -106,7 +106,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
 
   /// The amount of offset applied to the content by panning.
   ///
-  Offset _panOffset = Offset(0, 0);
+  Offset _panOffset = const Offset(0, 0);
 
   /// Adjust the position of the media content on the screen by a given [Offset].
   ///
@@ -195,7 +195,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
         future: _getContentDisplays,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           }
@@ -332,7 +332,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                                                 child: Center(
                                                   child: Text(
                                                     label,
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
                                                       color: Colors.white,
                                                       fontWeight: FontWeight.bold,
                                                     ),
@@ -367,7 +367,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                                             ),
                                             child: SizedBox(
                                               width: MediaQuery.of(context).size.width,
-                                              child: Icon(
+                                              child: const Icon(
                                                 Icons.drag_handle,
                                                 color: Colors.white,
                                               ),
@@ -420,7 +420,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ElevatedButton(
-                            child: Icon(Icons.chevron_left),
+                            child: const Icon(Icons.chevron_left),
                             onPressed: _documentDisplays!.length > 1 && _page - 1 >= 0 ? () => _previousPage() : null,
                           ),
                           Padding(
@@ -437,7 +437,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                             ),
                           ),
                           ElevatedButton(
-                            child: Icon(Icons.chevron_right),
+                            child: const Icon(Icons.chevron_right),
                             onPressed: _documentDisplays!.length > 1 && _page + 1 < _documentDisplays!.length ? () => _nextPage() : null,
                           ),
                         ],

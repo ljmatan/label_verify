@@ -5,6 +5,7 @@ import 'dart:math' as dart_math;
 
 import 'package:flutter/services.dart';
 import 'package:generic_shop_app_architecture/gsar.dart';
+import 'package:label_verify/models/src/model_diff_result.dart';
 import 'package:label_verify/models/src/model_ocr_result.dart';
 import 'package:label_verify/services/src/service_python.dart';
 
@@ -13,6 +14,8 @@ import 'package:label_verify/services/src/service_python.dart';
 class LvServiceImages extends GsaService {
   LvServiceImages._();
 
+  /// Globally-accessible class instance.
+  ///
   static final instance = LvServiceImages._();
 
   /// Crops the given [imageData] according to the specified coordinates,
@@ -83,7 +86,11 @@ class LvServiceImages extends GsaService {
   /// Returns an image composed of 2 input images,
   /// with any differences highlighted on this new image display.
   ///
-  Future<Uint8List> highlightDifferences(
+  Future<
+      ({
+        Uint8List visualDisplay,
+        List<LvModelDiffResult> contours,
+      })> highlightDifferences(
     Uint8List image1,
     Uint8List image2,
   ) async {

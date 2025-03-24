@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart' as services;
 import 'package:generic_shop_app_architecture/gsar.dart';
+import 'package:label_verify/config.dart';
+import 'package:label_verify/models/src/model_diff_result.dart';
 import 'package:label_verify/models/src/model_ocr_result.dart';
 import 'package:label_verify/services/src/service_cache.dart';
 import 'package:label_verify/services/src/service_files.dart';
@@ -33,9 +35,13 @@ class LvServicePythonRuntime extends GsaService {
   Future<void> _processExecutable() async {
     final assetId = 'assets/bin/python';
     final cachedExecutablePath = LvServiceCache.instance.getString(assetId);
-    if (const String.fromEnvironment('binAssetForceUpdate').toLowerCase() != 'true' && cachedExecutablePath != null) {
-      _executablePath = cachedExecutablePath;
-      return;
+    if (cachedExecutablePath != null) {
+      if (LvConfig.instance.binAssetUpdate) {
+        await dart_io.File(cachedExecutablePath).delete();
+      } else {
+        _executablePath = cachedExecutablePath;
+        return;
+      }
     }
     final executableByteData = await services.rootBundle.load(assetId);
     final executableBytes = executableByteData.buffer.asUint8List();
@@ -87,6 +93,20 @@ class LvServicePythonRuntime extends GsaService {
     throw Exception('No available ports found.');
   }
 
+  Future<void> _runExecutable() async {
+    final process = await dart_io.Process.start(
+      _executablePath,
+      [
+        '--port',
+        '$_port',
+        '--ppid',
+        '${dart_io.pid}',
+      ],
+    );
+    dart_io.stdout.addStream(process.stdout);
+    dart_io.stderr.addStream(process.stderr);
+  }
+
   /// Pings the local device network with the specified [_port] info
   /// until a connection is confirmed as being established.
   ///
@@ -113,12 +133,7 @@ class LvServicePythonRuntime extends GsaService {
     await super.init();
     await _findAvailablePort();
     await _processExecutable();
-    dart_io.Process.run(
-      _executablePath,
-      [
-        _port.toString(),
-      ],
-    );
+    await _runExecutable();
     await _confirmConnection();
   }
 
@@ -148,7 +163,11 @@ class LvServicePythonRuntime extends GsaService {
   /// Returns an image composed of 2 input images,
   /// with any differences highlighted on this new image display.
   ///
-  Future<Uint8List> highlightDifferences(
+  Future<
+      ({
+        Uint8List visualDisplay,
+        List<LvModelDiffResult> contours,
+      })> highlightDifferences(
     Uint8List image1,
     Uint8List image2,
   ) async {
@@ -162,6 +181,17 @@ class LvServicePythonRuntime extends GsaService {
     if (response['data'] is! String) {
       throw Exception('Response[\'data\'] type not String: ${response['data'].runtimeType}');
     }
-    return base64Decode(response['data']);
+    if (response['contours'] is! Iterable) {
+      throw Exception('Response[\'contours\'] type not Map: ${response['contours'].runtimeType}');
+    }
+    return (
+      visualDisplay: base64Decode(response['data']),
+      contours: [
+        for (final jsonObject in response['contours'])
+          LvModelDiffResult.fromJson(
+            jsonObject,
+          ),
+      ],
+    );
   }
 }

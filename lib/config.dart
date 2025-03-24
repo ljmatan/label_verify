@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:label_verify/services/services.dart';
-import 'package:label_verify/services/src/service_cache.dart';
-import 'package:label_verify/services/src/service_python.dart';
 
 /// Project configuration used during the runtime.
 ///
@@ -22,6 +20,10 @@ class LvConfig {
     if (_version.isEmpty) _version = '0.0.0.0';
     return _version;
   }
+
+  /// Defines whether binary assets should be updated on the current build, and the old one removed.
+  ///
+  bool binAssetUpdate = const String.fromEnvironment('lvBinAssetUpdate').toLowerCase() == 'true';
 
   /// Allocates the application runtime resources.
   ///

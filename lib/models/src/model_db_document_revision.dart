@@ -71,7 +71,7 @@ class LvModelDocumentRevision {
 
   /// Factory constructor used to generate a class instance from database data format.
   ///
-  factory LvModelDocumentRevision.fromJson(Map<String, dynamic> json) {
+  factory LvModelDocumentRevision.fromJson(Map json) {
     return LvModelDocumentRevision(
       id: json['id'],
       documentId: json['documentId'],

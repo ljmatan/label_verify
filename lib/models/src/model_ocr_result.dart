@@ -25,7 +25,7 @@ class LvModelOcrResult {
 
   /// Factory constructor used to generate a class instance from JSON data format.
   ///
-  factory LvModelOcrResult.fromJson(Map<String, dynamic> json) {
+  factory LvModelOcrResult.fromJson(Map json) {
     return LvModelOcrResult(
       text: json['text'],
       positionStartPercentX: json['start']['x'],
@@ -35,7 +35,7 @@ class LvModelOcrResult {
     );
   }
 
-  /// Method used for generating data in the database format.
+  /// Method used for generating data in the JSON format.
   ///
   Map<String, dynamic> toJson() {
     return {

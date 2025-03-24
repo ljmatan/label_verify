@@ -1,6 +1,9 @@
+import 'dart:typed_data' as dart_typed_data;
+
 import 'package:flutter/material.dart';
 import 'package:generic_shop_app_content/gsac.dart';
 import 'package:label_verify/models/models.dart';
+import 'package:label_verify/models/src/model_diff_result.dart';
 import 'package:label_verify/services/services.dart';
 import 'package:label_verify/view/src/common/widgets/widget_media_review_selection.dart';
 import 'package:label_verify/view/src/common/widgets/widget_navigation_bar.dart';
@@ -29,6 +32,50 @@ class LvRouteReview extends StatefulWidget {
 }
 
 class _LvRouteReviewState extends State<LvRouteReview> {
+  /// Document image displays.
+  ///
+  List<dart_typed_data.Uint8List>? _fileImageDisplays, _comparisonFileImageDisplays;
+
+  /// A collection of review configurations set up with this document.
+  ///
+  List<LvModelDocumentReviewConfiguration>? _reviewConfiguration;
+
+  /// Detected document image results, with index set in accordance with the document page number.
+  ///
+  List<
+      ({
+        dart_typed_data.Uint8List visualDisplay,
+        List<LvModelDiffResult> contours,
+      })>? _differenceResult;
+
+  Future<void> _initialiseContentData() async {
+    final fileImageDisplays = await widget.document.getFileImageDisplays();
+    if (fileImageDisplays.isEmpty) {
+      throw Exception('Document image displays is empty.');
+    }
+    _fileImageDisplays = fileImageDisplays;
+    final comparisonFileImageDisplays = await widget.comparisonDocument.getFileImageDisplays();
+    if (comparisonFileImageDisplays.isEmpty) {
+      throw Exception('Comparison document image displays is empty.');
+    }
+    _comparisonFileImageDisplays = comparisonFileImageDisplays;
+    final reviewConfiguration = await LvServiceDatabase.instance.getDocumentReviewConfigurationsForId(
+      widget.document.id,
+    );
+    if (reviewConfiguration.isEmpty) {
+      throw Exception('No review configuration set up for this document.');
+    }
+    _reviewConfiguration = reviewConfiguration;
+    final differenceResult = [
+      for (int i = 0; i < _fileImageDisplays!.length; i++)
+        await LvServiceImages.instance.highlightDifferences(
+          _fileImageDisplays![i],
+          _comparisonFileImageDisplays![i],
+        ),
+    ];
+    _differenceResult = differenceResult;
+  }
+
   /// Notifier implemented to track the view tab selection.
   ///
   final _selectedTabNotifier = ValueNotifier<int>(0);
@@ -43,9 +90,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
           ),
           Expanded(
             child: FutureBuilder(
-              future: LvServiceDatabase.instance.getDocumentReviewConfigurationsForId(
-                widget.document.id,
-              ),
+              future: _initialiseContentData(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(
@@ -53,10 +98,10 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                   );
                 }
 
-                if (snapshot.hasError || !snapshot.hasData) {
+                if (snapshot.hasError) {
                   return Center(
                     child: GsaWidgetError(
-                      snapshot.error?.toString() ?? 'No revision configuration found.',
+                      snapshot.error.toString(),
                     ),
                   );
                 }
@@ -158,48 +203,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                 return ListView(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                                   children: [
-                                    AspectRatio(
-                                      aspectRatio: 16 / 10,
-                                      child: FutureBuilder(
-                                        future: widget.document.getFileImageDisplays().then(
-                                          (documentImageDisplays) async {
-                                            if (documentImageDisplays.isEmpty) {
-                                              throw Exception('Document image displays is empty.');
-                                            }
-                                            final comparisonDocumentImageDisplays = await widget.comparisonDocument.getFileImageDisplays();
-                                            if (comparisonDocumentImageDisplays.isEmpty) {
-                                              throw Exception('Comparison document image displays is empty.');
-                                            }
-                                            return await LvServiceImages.instance.highlightDifferences(
-                                              documentImageDisplays.first,
-                                              comparisonDocumentImageDisplays.first,
-                                            );
-                                          },
-                                        ),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState != ConnectionState.done) {
-                                            return const Center(
-                                              child: CircularProgressIndicator(),
-                                            );
-                                          }
-
-                                          if (snapshot.hasError) {
-                                            return Center(
-                                              child: GsaWidgetError(
-                                                snapshot.error.toString(),
-                                              ),
-                                            );
-                                          }
-
-                                          return Image.memory(
-                                            snapshot.data!,
-                                            width: MediaQuery.of(context).size.width,
-                                            height: MediaQuery.of(context).size.height,
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    for (final reviewItem in snapshot.data!)
+                                    for (final reviewItem in _reviewConfiguration!)
                                       Card(
                                         color: Colors.white,
                                         child: Padding(

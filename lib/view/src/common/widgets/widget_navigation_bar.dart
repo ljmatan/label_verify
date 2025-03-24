@@ -37,7 +37,7 @@ class _LvWidgetNavigationBarState extends State<LvWidgetNavigationBar> {
             Expanded(
               child: Text(
                 widget.label.toUpperCase(),
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.w300,
                   color: Colors.white,
                   fontSize: 20,
@@ -47,7 +47,7 @@ class _LvWidgetNavigationBarState extends State<LvWidgetNavigationBar> {
             if (widget.includeBackButton)
               if (MediaQuery.of(context).size.width < 1000)
                 IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.close,
                     color: Colors.white,
                   ),
@@ -57,8 +57,8 @@ class _LvWidgetNavigationBarState extends State<LvWidgetNavigationBar> {
                 )
               else
                 FilledButton.tonalIcon(
-                  label: Text('CLOSE'),
-                  icon: Icon(Icons.close),
+                  label: const Text('CLOSE'),
+                  icon: const Icon(Icons.close),
                   onPressed: () {
                     Navigator.pop(context);
                   },

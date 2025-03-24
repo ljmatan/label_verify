@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   generic_shop_app_architecture:
-    path: /Users/matanljubas/Projects/temp/generic_shop_app/plugins/arch
+    path: /Users/matanljubas/Projects/generic_shop_app/plugins/arch
   generic_shop_app_content:
-    path: /Users/matanljubas/Projects/temp/generic_shop_app/plugins/content
+    path: /Users/matanljubas/Projects/generic_shop_app/plugins/content
   image: ^4.5.3
   collection: ^1.19.0
   archive: ^4.0.2

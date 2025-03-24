@@ -295,7 +295,7 @@ class LvServiceFiles extends GsaService {
   //       LvDialogContentBlocking.display();
   //       final fileType = importFile.fileName.split('.').last;
   //       if (LvServiceFilesType.importData.allowedTypeIdentifiers.contains(fileType)) {
-  //         late Map<String, dynamic> jsonData;
+  //         late Map jsonData;
   //         switch (fileType) {
   //           case 'txt':
   //           case 'json':

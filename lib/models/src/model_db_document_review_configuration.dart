@@ -101,7 +101,7 @@ class LvModelDocumentReviewConfiguration {
 
   /// Factory constructor used to generate a class instance from database data format.
   ///
-  factory LvModelDocumentReviewConfiguration.fromJson(Map<String, dynamic> json) {
+  factory LvModelDocumentReviewConfiguration.fromJson(Map json) {
     return LvModelDocumentReviewConfiguration(
       id: json['id'],
       documentId: json['documentId'],

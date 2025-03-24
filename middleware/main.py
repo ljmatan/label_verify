@@ -1,8 +1,9 @@
-import sys
 from flask import Flask, request, jsonify
+import argparse
 from services.service_img import ServiceImg
 from services.service_ocr import ServiceOcr
 from services.service_diff import ServiceDiff
+from services.service_process import ServiceProcess
 
 app = Flask("LabelVerifyMiddleware")
 
@@ -68,12 +69,13 @@ def img_diff():
         img1 = ServiceImg.decode_base64_image(image1_data_base64)
         img2 = ServiceImg.decode_base64_image(image2_data_base64)
 
-        img_diff = ServiceDiff.highlight_image_differences(img1, img2)
+        img_diff, contours_json = ServiceDiff.highlight_image_differences(img1, img2)
         img_diff_base64 = ServiceImg.encode_image_to_base64(img_diff)
 
         return jsonify(
             {
                 "data": img_diff_base64,
+                "contours": contours_json,
             }
         )
 
@@ -101,8 +103,11 @@ def catch_all(path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <server_port>")
-        sys.exit(1)
-    port_number = sys.argv[1]
-    app.run(host="0.0.0.0", port=int(port_number))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ppid", type=int, required=True, help="Parent process ID.")
+    parser.add_argument("--port", type=int, required=True, help="Server port number.")
+    args = parser.parse_args()
+
+    ServiceProcess.start_monitoring(args.ppid)
+
+    app.run(host="0.0.0.0", port=int(args.port))

@@ -3,3 +3,6 @@ sys
 base64
 pytesseract
 opencv-python
+numpy
+psutil
+argparse

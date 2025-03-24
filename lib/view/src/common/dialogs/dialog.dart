@@ -84,7 +84,7 @@ class _LvDialogState extends State<LvDialog> {
                                           padding: const EdgeInsets.symmetric(vertical: 5),
                                           child: Text(
                                             widget.title!,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18,
                                             ),
@@ -96,7 +96,7 @@ class _LvDialogState extends State<LvDialog> {
                                         right: 0,
                                         bottom: 0,
                                         child: IconButton(
-                                          icon: Icon(
+                                          icon: const Icon(
                                             Icons.close,
                                           ),
                                           iconSize: 18,

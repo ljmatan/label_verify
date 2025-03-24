@@ -8,8 +8,11 @@ class ServiceOcr:
     Optical character recognition service implemented with the Tesseract engine.
     """
 
-    @staticmethod
-    def extract_text(image: np.ndarray) -> List[Dict[str, Any]]:
+    @classmethod
+    def extract_text(
+        cls,
+        image: np.ndarray,
+    ) -> List[Dict[str, Any]]:
         """
         Extracts text and bounding box positions as percentages.
 

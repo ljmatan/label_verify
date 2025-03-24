@@ -54,6 +54,25 @@ class LvServiceCache extends GsaService {
     return _prefs.getString(key);
   }
 
+  /// Saves an integer [value] to persistent storage in the background.
+  ///
+  Future<void> setInt(
+    String key,
+    int value,
+  ) async {
+    await _prefs.setInt(key, value);
+  }
+
+  /// Reads a value from persistent storage, throwing an exception if it's not an int.
+  ///
+  int? getInt(
+    String key,
+  ) {
+    return _prefs.getInt(key);
+  }
+
+  /// Removes an entry from persistent storage.
+  ///
   Future<void> remove(
     String key,
   ) async {

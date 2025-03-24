@@ -8,8 +8,8 @@ class ServiceImg:
     Image data handling methods and properties.
     """
 
-    @staticmethod
-    def decode_base64_image(base64_string: str) -> np.ndarray:
+    @classmethod
+    def decode_base64_image(cls, base64_string: str) -> np.ndarray:
         """
         Decodes a base64 string into an OpenCV image.
         """
@@ -21,8 +21,8 @@ class ServiceImg:
             raise ValueError("Error: Unable to decode base64 image.")
         return image
 
-    @staticmethod
-    def encode_image_to_base64(image: np.ndarray) -> str:
+    @classmethod
+    def encode_image_to_base64(cls, image: np.ndarray) -> str:
         """
         Encodes an OpenCV image (np.ndarray) to a base64 string.
         """

@@ -22,7 +22,7 @@ class LvDialogContentBlocking extends StatefulWidget {
     final result = await showDialog(
       context: context ?? LvApp.navigatorKey.currentContext!,
       builder: (context) {
-        return LvDialogContentBlocking();
+        return const LvDialogContentBlocking();
       },
     );
     displayed = false;
@@ -44,7 +44,7 @@ class LvDialogContentBlocking extends StatefulWidget {
 class _LvDialogContentBlockingState extends State<LvDialogContentBlocking> {
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return const DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white70,
       ),
