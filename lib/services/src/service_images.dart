@@ -8,6 +8,7 @@ import 'package:generic_shop_app_architecture/gsar.dart';
 import 'package:label_verify/models/src/model_diff_result.dart';
 import 'package:label_verify/models/src/model_ocr_result.dart';
 import 'package:label_verify/services/src/service_python.dart';
+import 'package:image/image.dart' as img;
 
 /// Utility methods implemented for image manipulation purposes.
 ///
@@ -17,6 +18,14 @@ class LvServiceImages extends GsaService {
   /// Globally-accessible class instance.
   ///
   static final instance = LvServiceImages._();
+
+  /// Fetches and returns an image aspect ratio.
+  ///
+  double getPngAspectRatio(Uint8List value) {
+    final image = img.decodePng(value);
+    if (image == null) throw Exception('Invalid image.');
+    return image.width / image.height;
+  }
 
   /// Crops the given [imageData] according to the specified coordinates,
   /// returning the display value of this cropped image.

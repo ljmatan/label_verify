@@ -245,13 +245,16 @@ extension LvServiceDatabaseDocumentCategoryQueries on LvServiceDatabase {
 extension LvServiceDatabaseDocumentReviewConfiguration on LvServiceDatabase {
   /// Inserts a database document review configuration record, returning the new value identifier.
   ///
-  Future<int> insertDocumentReviewConfiguration(
-    LvModelDocumentReviewConfiguration documentReviewConfiguration,
+  Future<void> insertDocumentReviewConfiguration(
+    List<LvModelDocumentReviewConfiguration> documentReviewConfiguration,
   ) async {
-    return await db.insert(
-      _documentReviewConfigurationTableId,
-      documentReviewConfiguration.toJson()..['id'] = null,
-    );
+    for (final reviewConfig in documentReviewConfiguration) {
+      final id = await db.insert(
+        _documentReviewConfigurationTableId,
+        reviewConfig.toJson()..['id'] = null,
+      );
+      reviewConfig.id = id;
+    }
   }
 
   /// Removes a document review configuration with a specified [documentReviewConfigurationId].
@@ -259,13 +262,13 @@ extension LvServiceDatabaseDocumentReviewConfiguration on LvServiceDatabase {
   /// Returns the number of rows affected.
   ///
   Future<int> removeDocumentReviewConfiguration(
-    int documentReviewConfigurationId,
+    int documentId,
   ) async {
     return await db.delete(
       _documentReviewConfigurationTableId,
-      where: 'id = ?',
+      where: 'documentId = ?',
       whereArgs: [
-        documentReviewConfigurationId,
+        documentId,
       ],
     );
   }

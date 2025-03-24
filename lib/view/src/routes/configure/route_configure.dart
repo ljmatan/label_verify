@@ -71,12 +71,8 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
   Future<void> _saveChanges() async {
     LvDialogContentBlocking.display();
     try {
-      for (final reviewItem in _reviewItems) {
-        if (reviewItem.id == -1) {
-          final reviewItemId = await LvServiceDatabase.instance.insertDocumentReviewConfiguration(reviewItem);
-          reviewItem.id = reviewItemId;
-        }
-      }
+      await LvServiceDatabase.instance.removeDocumentReviewConfiguration(widget.document.id);
+      await LvServiceDatabase.instance.insertDocumentReviewConfiguration(_reviewItems);
       Navigator.pop(context);
       const GsaWidgetOverlayAlert(
         title: 'Success',

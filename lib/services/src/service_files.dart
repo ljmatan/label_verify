@@ -16,7 +16,7 @@ import 'package:file_saver/file_saver.dart' as file_saver;
 import 'package:archive/archive.dart' as archive;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path/path.dart' as path;
-import 'package:printing/printing.dart';
+import 'package:printing/printing.dart' as printing;
 
 /// Supported file type extensions.
 ///
@@ -106,7 +106,7 @@ class LvServiceFiles extends GsaService {
         }
         final pagesNumber = fileExtensionType != LvServiceFilesExtensionTypes.pdf
             ? 1
-            : await Printing.raster(
+            : await printing.Printing.raster(
                 fileBytes,
                 dpi: 1,
               ).length;
@@ -130,6 +130,7 @@ class LvServiceFiles extends GsaService {
   Future<dart_io.File> storeStandaloneFile({
     required Uint8List fileBytes,
     required LvServiceFilesExtensionTypes fileType,
+    String? directoryName,
   }) async {
     String generateRandomFileName(int length) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -146,15 +147,44 @@ class LvServiceFiles extends GsaService {
 
     // Setup the application support directory location.
     final appSupportDirectory = await path_provider.getApplicationSupportDirectory();
-    if (!await appSupportDirectory.exists()) await appSupportDirectory.create(recursive: true);
+    if (!await appSupportDirectory.exists()) {
+      await appSupportDirectory.create(recursive: true);
+    }
+
+    // Create the subdirectory if it doesn't exist.
+    if (directoryName != null) {
+      final subdirectoryPath = path.join(appSupportDirectory.path, directoryName);
+      final subdirectory = dart_io.Directory(subdirectoryPath);
+      if (!await subdirectory.exists()) {
+        await subdirectory.create(recursive: true);
+      }
+    }
 
     // Determine a valid filename.
     String fileName = generateRandomFileName(20) + fileType.filePathExtension;
-    String filePath = path.join(appSupportDirectory.path, fileName);
+    String filePath = directoryName == null
+        ? path.join(
+            appSupportDirectory.path,
+            fileName,
+          )
+        : path.join(
+            appSupportDirectory.path,
+            directoryName,
+            fileName,
+          );
     dart_io.File file = dart_io.File(filePath);
     while (await file.exists()) {
       fileName = generateRandomFileName(20) + fileType.filePathExtension;
-      filePath = path.join(appSupportDirectory.path, fileName);
+      String filePath = directoryName == null
+          ? path.join(
+              appSupportDirectory.path,
+              fileName,
+            )
+          : path.join(
+              appSupportDirectory.path,
+              directoryName,
+              fileName,
+            );
       file = dart_io.File(filePath);
     }
 
@@ -181,6 +211,7 @@ class LvServiceFiles extends GsaService {
     final file = await storeStandaloneFile(
       fileBytes: fileBytes,
       fileType: fileType,
+      directoryName: 'original',
     );
 
     // Set file image displays and their appropriate path values.
@@ -201,7 +232,8 @@ class LvServiceFiles extends GsaService {
       );
       final storedConvertedFile = await storeStandaloneFile(
         fileBytes: convertedFile,
-        fileType: fileType,
+        fileType: LvServiceFilesExtensionTypes.png,
+        directoryName: 'converted',
       );
       fileImageDisplayPaths.add(storedConvertedFile.path);
     }
@@ -212,7 +244,8 @@ class LvServiceFiles extends GsaService {
       for (final convertedFile in convertedFiles) {
         final storedConvertedFile = await storeStandaloneFile(
           fileBytes: convertedFile,
-          fileType: fileType,
+          fileType: LvServiceFilesExtensionTypes.png,
+          directoryName: 'converted',
         );
         fileImageDisplayPaths.add(storedConvertedFile.path);
       }

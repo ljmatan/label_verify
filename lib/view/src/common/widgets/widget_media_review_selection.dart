@@ -1,4 +1,6 @@
-import 'dart:typed_data';
+import 'dart:async';
+import 'dart:math' as dart_math;
+import 'dart:typed_data' as dart_typed_data;
 
 import 'package:flutter/material.dart';
 import 'package:generic_shop_app_content/gsac.dart';
@@ -16,6 +18,7 @@ class LvWidgetMediaReviewSelection extends StatefulWidget {
     required this.contentDocument,
     this.comparisonDocument,
     this.addReviewItem,
+    this.differenceResult,
   });
 
   /// Media content representation in the [Uint8List] format.
@@ -30,11 +33,21 @@ class LvWidgetMediaReviewSelection extends StatefulWidget {
   ///
   final void Function(LvModelDocumentReviewConfiguration value)? addReviewItem;
 
+  /// Detected document image results, with index set in accordance with the document page number.
+  ///
+  final List<
+      ({
+        dart_typed_data.Uint8List visualDisplay,
+        List<LvModelDiffResult> contours,
+      })>? differenceResult;
+
   @override
-  State<LvWidgetMediaReviewSelection> createState() => _WidgetReviewSelectionState();
+  State<LvWidgetMediaReviewSelection> createState() => LvWidgetReviewSelectionState();
 }
 
-class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
+/// [State] object defined for the [LvWidgetMediaReviewSelection] widget.
+///
+class LvWidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
   /// A key to access the render object of the media [Widget].
   ///
   final _mediaWidgetKey = GlobalKey();
@@ -48,6 +61,7 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
   ///
   void _setMediaRenderBox() {
     _mediaRenderBox = _mediaWidgetKey.currentContext?.findRenderObject() as RenderBox?;
+    if (_mediaRenderBox != null) setState(() {});
   }
 
   /// Once the user starts the section selection process, these values are updated.
@@ -143,15 +157,19 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
 
   int _page = 0;
 
+  bool get _previousPageAvailable => _documentDisplays!.length > 1 && _page - 1 >= 0;
+
   void _previousPage() {
-    if (_page - 1 >= 0) {
+    if (_previousPageAvailable) {
       _page--;
       setState(() {});
     }
   }
 
+  bool get _nextPageAvailable => _documentDisplays!.length > 1 && _page + 1 < _documentDisplays!.length;
+
   void _nextPage() {
-    if (_page + 1 < _documentDisplays!.length) {
+    if (_nextPageAvailable) {
       _page++;
       setState(() {});
     }
@@ -168,311 +186,334 @@ class _WidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
 
   late Future<void> _getContentDisplays;
 
-  List<Uint8List>? _documentDisplays, _comparisonDocumentDisplays;
+  List<dart_typed_data.Uint8List>? _documentDisplays, _comparisonDocumentDisplays;
 
   @override
   void initState() {
     super.initState();
     _panEnabled = widget.addReviewItem == null;
-    _getContentDisplays = widget.contentDocument.getFileImageDisplays().then(
-      (contentDocumentDisplays) async {
+    _getContentDisplays = Future(
+      () async {
+        final documentDisplays = await widget.contentDocument.getFileImageDisplays();
+        if (documentDisplays.isEmpty) {
+          throw Exception('Document display list is empty.');
+        }
         final comparisonDocumentDisplays = await widget.comparisonDocument?.getFileImageDisplays();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _setMediaRenderBox();
-        });
-        _documentDisplays = contentDocumentDisplays;
+        if (comparisonDocumentDisplays?.isEmpty == true) {
+          throw Exception('Comparison document provided but display list is empty.');
+        }
+        _documentDisplays = documentDisplays;
         _comparisonDocumentDisplays = comparisonDocumentDisplays;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) {
+            _setMediaRenderBox();
+          },
+        );
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      child: FutureBuilder<void>(
-        future: _getContentDisplays,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+      ),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        child: FutureBuilder<void>(
+          future: _getContentDisplays,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
 
-          if (snapshot.hasError || _documentDisplays?.isNotEmpty != true) {
-            return Center(
-              child: GsaWidgetError(snapshot.error?.toString() ?? 'No data found.'),
-            );
-          }
+            if (snapshot.hasError || _documentDisplays?.isNotEmpty != true) {
+              return Center(
+                child: GsaWidgetError(snapshot.error?.toString() ?? 'No data found.'),
+              );
+            }
 
-          return ClipRect(
-            child: Stack(
-              children: [
-                Center(
-                  child: Transform.translate(
-                    offset: _panOffset,
-                    child: Transform.scale(
-                      scale: _scale,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Listener(
-                            child: MouseRegion(
-                              cursor: _panEnabled ? SystemMouseCursors.grab : SystemMouseCursors.precise,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  boxShadow: kElevationToShadow[16],
-                                ),
-                                child: Image.memory(
-                                  key: _mediaWidgetKey,
-                                  _documentDisplays![_page],
-                                  fit: BoxFit.contain,
-                                  gaplessPlayback: true,
+            return ClipRect(
+              child: Stack(
+                children: [
+                  Center(
+                    child: Transform.translate(
+                      offset: _panOffset,
+                      child: Transform.scale(
+                        scale: _scale,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Listener(
+                              child: MouseRegion(
+                                cursor: _panEnabled ? SystemMouseCursors.grab : SystemMouseCursors.precise,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    boxShadow: kElevationToShadow[16],
+                                  ),
+                                  child: Image.memory(
+                                    key: _mediaWidgetKey,
+                                    _documentDisplays![_page],
+                                    gaplessPlayback: true,
+                                  ),
                                 ),
                               ),
-                            ),
-                            onPointerDown: _panEnabled
-                                ? (event) => _panAdjust(event.delta)
-                                : widget.addReviewItem == null
-                                    ? null
-                                    : (event) {
-                                        final offsetX = event.localPosition.dx / _mediaRenderBox!.size.width;
-                                        final offsetY = event.localPosition.dy / _mediaRenderBox!.size.height;
-                                        _setStartPosition(
-                                          event.localPosition.dx,
-                                          offsetX,
-                                          event.localPosition.dy,
-                                          offsetY,
-                                        );
-                                      },
-                            onPointerMove: _panEnabled
-                                ? (event) => _panAdjust(event.delta)
-                                : widget.addReviewItem == null
-                                    ? null
-                                    : (event) {
-                                        final offsetX = event.localPosition.dx / _mediaRenderBox!.size.width;
-                                        final offsetY = event.localPosition.dy / _mediaRenderBox!.size.height;
-                                        _setEndPosition(
-                                          event.localPosition.dx,
-                                          offsetX,
-                                          event.localPosition.dy,
-                                          offsetY,
-                                        );
-                                      },
-                            onPointerUp: _panEnabled
-                                ? (event) => _panAdjust(event.delta)
-                                : widget.addReviewItem == null
-                                    ? null
-                                    : (event) async {
-                                        final positionStartPercentX = _startPosition!.xPercent,
-                                            positionStartPercentY = _startPosition!.yPercent,
-                                            positionEndPercentX = _endPosition!.xPercent,
-                                            positionEndPercentY = _endPosition!.yPercent;
-                                        _resetPositionInfo();
-                                        const GsaWidgetOverlayContentBlocking().openDialog(context);
-                                        try {
-                                          await showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return _DialogReviewInput(
-                                                document: widget.contentDocument,
-                                                page: _page,
-                                                positionStartPercentX: positionStartPercentX,
-                                                positionStartPercentY: positionStartPercentY,
-                                                positionEndPercentX: positionEndPercentX,
-                                                positionEndPercentY: positionEndPercentY,
-                                                addReviewItem: widget.addReviewItem!,
-                                              );
-                                            },
+                              onPointerDown: _panEnabled
+                                  ? (event) => _panAdjust(event.delta)
+                                  : widget.addReviewItem == null
+                                      ? null
+                                      : (event) {
+                                          final offsetX = event.localPosition.dx / _mediaRenderBox!.size.width;
+                                          final offsetY = event.localPosition.dy / _mediaRenderBox!.size.height;
+                                          _setStartPosition(
+                                            event.localPosition.dx,
+                                            offsetX,
+                                            event.localPosition.dy,
+                                            offsetY,
                                           );
-                                          Navigator.pop(context);
-                                        } catch (e) {
-                                          Navigator.pop(context);
-                                          GsaWidgetOverlayAlert(
-                                            title: 'Error',
-                                            message: '$e',
-                                          ).openDialog(context);
-                                        }
-                                      },
-                          ),
-                          if (_comparisonDocumentDisplays?.isNotEmpty == true) ...[
-                            Positioned.fill(
-                              child: ClipRect(
+                                        },
+                              onPointerMove: _panEnabled
+                                  ? (event) => _panAdjust(event.delta)
+                                  : widget.addReviewItem == null
+                                      ? null
+                                      : (event) {
+                                          final offsetX = event.localPosition.dx / _mediaRenderBox!.size.width;
+                                          final offsetY = event.localPosition.dy / _mediaRenderBox!.size.height;
+                                          _setEndPosition(
+                                            event.localPosition.dx,
+                                            offsetX,
+                                            event.localPosition.dy,
+                                            offsetY,
+                                          );
+                                        },
+                              onPointerUp: _panEnabled
+                                  ? (event) => _panAdjust(event.delta)
+                                  : widget.addReviewItem == null
+                                      ? null
+                                      : (event) async {
+                                          if (_startPosition == null || _endPosition == null) return;
+                                          final positionStartPercentX = _startPosition!.xPercent,
+                                              positionStartPercentY = _startPosition!.yPercent,
+                                              positionEndPercentX = _endPosition!.xPercent,
+                                              positionEndPercentY = _endPosition!.yPercent;
+                                          _resetPositionInfo();
+                                          const GsaWidgetOverlayContentBlocking().openDialog(context);
+                                          try {
+                                            await showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return _DialogReviewInput(
+                                                  document: widget.contentDocument,
+                                                  page: _page,
+                                                  positionStartPercentX: positionStartPercentX,
+                                                  positionStartPercentY: positionStartPercentY,
+                                                  positionEndPercentX: positionEndPercentX,
+                                                  positionEndPercentY: positionEndPercentY,
+                                                  addReviewItem: widget.addReviewItem!,
+                                                );
+                                              },
+                                            );
+                                            Navigator.pop(context);
+                                          } catch (e) {
+                                            Navigator.pop(context);
+                                            GsaWidgetOverlayAlert(
+                                              title: 'Error',
+                                              message: '$e',
+                                            ).openDialog(context);
+                                          }
+                                        },
+                            ),
+                            if (_comparisonDocumentDisplays?.isNotEmpty == true) ...[
+                              ClipRect(
                                 clipper: _ClipperHorizontal(_sliderPosition),
                                 child: Image.memory(
                                   _comparisonDocumentDisplays![_page],
                                   fit: BoxFit.contain,
-                                  width: MediaQuery.of(context).size.width,
                                   gaplessPlayback: true,
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              left: _sliderPosition * (MediaQuery.of(context).size.width * (2 / 3)) - 14,
-                              top: 0,
-                              bottom: 0,
-                              child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: Tooltip(
-                                  richMessage: WidgetSpan(
-                                    child: SizedBox(
-                                      width: 140,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            for (final label in const <String>{
-                                              'NEW',
-                                              '',
-                                              'OLD',
-                                            })
-                                              Expanded(
-                                                child: Center(
-                                                  child: Text(
-                                                    label,
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight: FontWeight.bold,
+                              Positioned(
+                                left: _sliderPosition * (MediaQuery.of(context).size.width * (2 / 3)) - 14,
+                                top: 0,
+                                bottom: 0,
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: Tooltip(
+                                    richMessage: WidgetSpan(
+                                      child: SizedBox(
+                                        width: 140,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              for (final label in const <String>{
+                                                'NEW',
+                                                '',
+                                                'OLD',
+                                              })
+                                                Expanded(
+                                                  child: Center(
+                                                    child: Text(
+                                                      label,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    child: SizedBox(
-                                      width: 28,
-                                      height: MediaQuery.of(context).size.height,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          DecoratedBox(
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.shade200.withValues(alpha: .5),
-                                            ),
-                                            child: SizedBox(
-                                              width: 2,
-                                              height: MediaQuery.of(context).size.height,
-                                            ),
-                                          ),
-                                          DecoratedBox(
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.shade200,
-                                            ),
-                                            child: SizedBox(
-                                              width: MediaQuery.of(context).size.width,
-                                              child: const Icon(
-                                                Icons.drag_handle,
-                                                color: Colors.white,
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      child: SizedBox(
+                                        width: 28,
+                                        height: MediaQuery.of(context).size.height,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade200.withValues(alpha: .5),
+                                              ),
+                                              child: SizedBox(
+                                                width: 2,
+                                                height: MediaQuery.of(context).size.height,
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                            DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade200,
+                                              ),
+                                              child: SizedBox(
+                                                width: MediaQuery.of(context).size.width,
+                                                child: const Icon(
+                                                  Icons.drag_handle,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      onHorizontalDragUpdate: (details) {
+                                        if (details.primaryDelta != null) {
+                                          _setSliderPosition(details.primaryDelta!);
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (_startPosition != null && _endPosition != null)
+                              Positioned(
+                                left: _startPosition!.x < _endPosition!.x ? _startPosition!.x : _endPosition!.x,
+                                top: _startPosition!.y < _endPosition!.y ? _startPosition!.y : _endPosition!.y,
+                                child: IgnorePointer(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.shade300.withValues(alpha: .3),
+                                      border: Border.all(
+                                        color: Colors.amber,
                                       ),
                                     ),
-                                    onHorizontalDragUpdate: (details) {
-                                      if (details.primaryDelta != null) {
-                                        _setSliderPosition(details.primaryDelta!);
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (_startPosition != null && _endPosition != null)
-                            Positioned(
-                              left: _startPosition!.x < _endPosition!.x ? _startPosition!.x : _endPosition!.x,
-                              top: _startPosition!.y < _endPosition!.y ? _startPosition!.y : _endPosition!.y,
-                              child: IgnorePointer(
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.shade300.withValues(alpha: .3),
-                                    border: Border.all(
-                                      color: Colors.amber,
+                                    child: SizedBox(
+                                      width: (_endPosition!.x - _startPosition!.x).abs(),
+                                      height: (_endPosition!.y - _startPosition!.y).abs(),
                                     ),
                                   ),
-                                  child: SizedBox(
-                                    width: (_endPosition!.x - _startPosition!.x).abs(),
-                                    height: (_endPosition!.y - _startPosition!.y).abs(),
-                                  ),
                                 ),
                               ),
-                            ),
-                        ],
+                            if (widget.differenceResult != null && _mediaRenderBox != null)
+                              for (final contour in widget.differenceResult![_page].contours)
+                                Positioned(
+                                  left: contour.positionStartPercentX * _mediaRenderBox!.size.width,
+                                  top: contour.positionStartPercentY * _mediaRenderBox!.size.height,
+                                  child: _HighlightedArea(
+                                    child: SizedBox(
+                                      width: _mediaRenderBox!.size.width * contour.widthPercent,
+                                      height: _mediaRenderBox!.size.height * contour.heightPercent,
+                                    ),
+                                  ),
+                                ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ElevatedButton(
-                            child: const Icon(Icons.chevron_left),
-                            onPressed: _documentDisplays!.length > 1 && _page - 1 >= 0 ? () => _previousPage() : null,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Card(
-                              margin: EdgeInsets.zero,
-                              color: Colors.white,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                child: Text(
-                                  '${_page + 1}/${_documentDisplays!.length}',
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              child: const Icon(Icons.chevron_left),
+                              onPressed: _previousPageAvailable ? () => _previousPage() : null,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Card(
+                                margin: EdgeInsets.zero,
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                  child: Text(
+                                    '${_page + 1}/${_documentDisplays!.length}',
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          ElevatedButton(
-                            child: const Icon(Icons.chevron_right),
-                            onPressed: _documentDisplays!.length > 1 && _page + 1 < _documentDisplays!.length ? () => _nextPage() : null,
-                          ),
-                        ],
-                      ),
-                      for (final action in {
-                        if (widget.addReviewItem != null)
+                            ElevatedButton(
+                              child: const Icon(Icons.chevron_right),
+                              onPressed: _nextPageAvailable ? () => _nextPage() : null,
+                            ),
+                          ],
+                        ),
+                        for (final action in {
+                          if (widget.addReviewItem != null)
+                            (
+                              icon: _panEnabled ? Icons.pan_tool : Icons.pan_tool_outlined,
+                              onPressed: () {
+                                _setPanState();
+                              },
+                            ),
                           (
-                            icon: _panEnabled ? Icons.pan_tool : Icons.pan_tool_outlined,
-                            onPressed: () {
-                              _setPanState();
-                            },
+                            icon: Icons.zoom_in,
+                            onPressed: () => _scaleIncrease(),
                           ),
-                        (
-                          icon: Icons.zoom_in,
-                          onPressed: () => _scaleIncrease(),
-                        ),
-                        (
-                          icon: Icons.zoom_out,
-                          onPressed: () => _scaleDecrease(),
-                        ),
-                      }.indexed)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: ElevatedButton(
-                            child: Icon(action.$2.icon),
-                            onPressed: action.$2.onPressed,
+                          (
+                            icon: Icons.zoom_out,
+                            onPressed: () => _scaleDecrease(),
                           ),
-                        ),
-                    ],
+                        }.indexed)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: ElevatedButton(
+                              child: Icon(action.$2.icon),
+                              onPressed: action.$2.onPressed,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -518,7 +559,7 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
 
   /// Property holding the value of the generated, cropped image display.
   ///
-  Uint8List? _croppedImageDisplay;
+  dart_typed_data.Uint8List? _croppedImageDisplay;
 
   late Future<void> _getCroppedImage;
 
@@ -757,5 +798,78 @@ class _ClipperHorizontal extends CustomClipper<Rect> {
   @override
   bool shouldReclip(_ClipperHorizontal oldClipper) {
     return oldClipper.dragPosition != dragPosition;
+  }
+}
+
+class _HighlightedArea extends StatefulWidget {
+  const _HighlightedArea({
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  _HighlightedAreaState createState() => _HighlightedAreaState();
+}
+
+class _HighlightedAreaState extends State<_HighlightedArea> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  final _duration = const Duration(seconds: 2);
+
+  static final _colors = <Color>[
+    for (int i = 0; i < 100; i++)
+      Color.fromARGB(
+        255,
+        dart_math.Random().nextInt(256),
+        dart_math.Random().nextInt(256),
+        dart_math.Random().nextInt(256),
+      ),
+  ];
+
+  int _colorIndex = 0;
+
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: _duration,
+      vsync: this,
+      lowerBound: 0,
+      upperBound: .6,
+    )..repeat(reverse: true);
+    _timer = Timer.periodic(
+      _duration * 2,
+      (_) {
+        setState(() => _colorIndex + 1 < _colors.length ? _colorIndex++ : _colorIndex = 0);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _controller.value,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: _colors[_colorIndex],
+            ),
+            child: widget.child,
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _timer.cancel();
+    super.dispose();
   }
 }

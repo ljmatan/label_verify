@@ -1,7 +1,7 @@
-import 'dart:convert';
+import 'dart:convert' as dart_convert;
 import 'dart:io' as dart_io;
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' as services;
 import 'package:generic_shop_app_architecture/gsar.dart';
 import 'package:label_verify/config.dart';
@@ -37,7 +37,11 @@ class LvServicePythonRuntime extends GsaService {
     final cachedExecutablePath = LvServiceCache.instance.getString(assetId);
     if (cachedExecutablePath != null) {
       if (LvConfig.instance.binAssetUpdate) {
-        await dart_io.File(cachedExecutablePath).delete();
+        try {
+          await dart_io.File(cachedExecutablePath).delete();
+        } catch (e) {
+          debugPrint('Error deleting existing binary asset: $e');
+        }
       } else {
         _executablePath = cachedExecutablePath;
         return;
@@ -146,7 +150,7 @@ class LvServicePythonRuntime extends GsaService {
     final response = await LvServiceHttp.instance.post(
       Uri.parse('$_serverAddress/img/ocr'),
       {
-        'imageBase64': base64Encode(image),
+        'imageBase64': dart_convert.base64Encode(image),
       },
     );
     if (response['data'] is! Iterable) {
@@ -174,8 +178,8 @@ class LvServicePythonRuntime extends GsaService {
     final response = await LvServiceHttp.instance.post(
       Uri.parse('$_serverAddress/img/diff'),
       {
-        'image1Base64': base64Encode(image1),
-        'image2Base64': base64Encode(image2),
+        'image1Base64': dart_convert.base64Encode(image1),
+        'image2Base64': dart_convert.base64Encode(image2),
       },
     );
     if (response['data'] is! String) {
@@ -185,7 +189,7 @@ class LvServicePythonRuntime extends GsaService {
       throw Exception('Response[\'contours\'] type not Map: ${response['contours'].runtimeType}');
     }
     return (
-      visualDisplay: base64Decode(response['data']),
+      visualDisplay: dart_convert.base64Decode(response['data']),
       contours: [
         for (final jsonObject in response['contours'])
           LvModelDiffResult.fromJson(
@@ -193,5 +197,24 @@ class LvServicePythonRuntime extends GsaService {
           ),
       ],
     );
+  }
+
+  /// Converts given PDF [fileBytes] to a PNG image representation.
+  ///
+  Future<List<Uint8List>> convertPdfToPng(
+    Uint8List fileBytes,
+  ) async {
+    final response = await LvServiceHttp.instance.post(
+      Uri.parse('$_serverAddress/convert/pdf'),
+      {
+        'pdfBase64': dart_convert.base64Encode(fileBytes),
+      },
+    );
+    if (response['data'] is! Iterable) {
+      throw Exception('Response[\'data\'] type not Iterable: ${response['data'].runtimeType}');
+    }
+    return [
+      for (final jsonData in response['data']) dart_convert.base64Decode(jsonData),
+    ];
   }
 }

@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 import argparse
+from services.service_conversion import ServiceConversion
+from services.service_diff import ServiceDiff
 from services.service_img import ServiceImg
 from services.service_ocr import ServiceOcr
-from services.service_diff import ServiceDiff
 from services.service_process import ServiceProcess
 
 app = Flask("LabelVerifyMiddleware")
@@ -10,7 +11,11 @@ app = Flask("LabelVerifyMiddleware")
 
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({"message": "Status OK."})
+    return jsonify(
+        {
+            "message": "Status OK.",
+        },
+    )
 
 
 @app.route("/img/ocr", methods=["POST"])
@@ -23,7 +28,7 @@ def img_ocr():
                 jsonify(
                     {
                         "message": "Image input data is missing from the request body.",
-                    }
+                    },
                 ),
                 400,
             )
@@ -35,7 +40,7 @@ def img_ocr():
         return jsonify(
             {
                 "data": ocr_scan_results,
-            }
+            },
         )
 
     except Exception as e:
@@ -43,7 +48,7 @@ def img_ocr():
             jsonify(
                 {
                     "message": str(e),
-                }
+                },
             ),
             500,
         )
@@ -61,7 +66,7 @@ def img_diff():
                 jsonify(
                     {
                         "message": "Image input data is missing from the request body.",
-                    }
+                    },
                 ),
                 400,
             )
@@ -76,6 +81,41 @@ def img_diff():
             {
                 "data": img_diff_base64,
                 "contours": contours_json,
+            }
+        )
+
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "message": str(e),
+                },
+            ),
+            500,
+        )
+
+
+@app.route("/convert/pdf", methods=["POST"])
+def convert_pdf():
+    try:
+        data = request.get_json()
+        pdf_data_base64 = data.get("pdfBase64")
+
+        if not pdf_data_base64:
+            return (
+                jsonify(
+                    {
+                        "message": "PDF input data is missing from the request body.",
+                    },
+                ),
+                400,
+            )
+
+        converted_pdf = ServiceConversion.pdf_base64_to_png_base64_list(pdf_data_base64)
+
+        return jsonify(
+            {
+                "data": converted_pdf,
             }
         )
 

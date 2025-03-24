@@ -3,7 +3,7 @@ import 'dart:ui' as dart_ui;
 
 import 'package:generic_shop_app_architecture/gsar.dart';
 import 'package:flutter_svg/flutter_svg.dart' as flutter_svg;
-import 'package:printing/printing.dart' as printing;
+import 'package:label_verify/services/services.dart';
 
 /// Class implementing file conversion services.
 ///
@@ -57,10 +57,6 @@ class LvServiceConversion extends GsaService {
   Future<List<dart_typed_data.Uint8List>> convertPdfToPng(
     dart_typed_data.Uint8List fileBytes,
   ) async {
-    final raster = printing.Printing.raster(fileBytes, dpi: 300);
-    final pages = await raster.toList();
-    return [
-      for (final page in pages) await page.toPng(),
-    ];
+    return await LvServicePythonRuntime.instance.convertPdfToPng(fileBytes);
   }
 }

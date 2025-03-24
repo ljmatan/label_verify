@@ -130,9 +130,10 @@ class _WidgetReviewItem extends StatelessWidget {
                 ),
               ],
             ),
-            if (reviewItem.description != null)
+            const SizedBox(height: 12),
+            if (reviewItem.description?.isNotEmpty == true)
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
                   reviewItem.description!,
                   style: TextStyle(

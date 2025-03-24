@@ -1,12 +1,14 @@
 import 'dart:typed_data' as dart_typed_data;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:generic_shop_app_content/gsac.dart';
 import 'package:label_verify/models/models.dart';
-import 'package:label_verify/models/src/model_diff_result.dart';
 import 'package:label_verify/services/services.dart';
 import 'package:label_verify/view/src/common/widgets/widget_media_review_selection.dart';
 import 'package:label_verify/view/src/common/widgets/widget_navigation_bar.dart';
+
+part 'widgets/widget_review_item.dart';
 
 /// Route for establishing the process of reviewing the media content.
 ///
@@ -76,6 +78,10 @@ class _LvRouteReviewState extends State<LvRouteReview> {
     _differenceResult = differenceResult;
   }
 
+  /// Key property used for accessing of the [LvWidgetReviewSelectionState] object.
+  ///
+  final _reviewSelectionKey = GlobalKey<LvWidgetReviewSelectionState>();
+
   /// Notifier implemented to track the view tab selection.
   ///
   final _selectedTabNotifier = ValueNotifier<int>(0);
@@ -111,8 +117,10 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                     Expanded(
                       flex: 2,
                       child: LvWidgetMediaReviewSelection(
+                        key: _reviewSelectionKey,
                         contentDocument: widget.document,
                         comparisonDocument: widget.comparisonDocument,
+                        differenceResult: _differenceResult,
                       ),
                     ),
                     Expanded(
@@ -130,7 +138,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.only(bottom: 10),
+                                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
                                       child: Align(
                                         alignment: Alignment.centerRight,
                                         child: Text(
@@ -204,107 +212,14 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                                   children: [
                                     for (final reviewItem in _reviewConfiguration!)
-                                      Card(
-                                        color: Colors.white,
-                                        child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Stack(
-                                                children: [
-                                                  DecoratedBox(
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.grey.shade200,
-                                                      border: Border.all(
-                                                        color: Colors.grey,
-                                                      ),
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    child: ConstrainedBox(
-                                                      constraints: BoxConstraints(
-                                                        minWidth: MediaQuery.of(context).size.width,
-                                                        maxHeight: 400,
-                                                      ),
-                                                      child: FutureBuilder(
-                                                        future: widget.document.getFileImageDisplays().then(
-                                                          (value) {
-                                                            return reviewItem.getImageDisplay(
-                                                              originalImage: value[reviewItem.page],
-                                                            );
-                                                          },
-                                                        ),
-                                                        builder: (context, snapshot) {
-                                                          if (snapshot.connectionState != ConnectionState.done) {
-                                                            return const Center(
-                                                              child: CircularProgressIndicator(),
-                                                            );
-                                                          }
-
-                                                          if (snapshot.hasError || snapshot.data?.isNotEmpty != true) {
-                                                            return Center(
-                                                              child: GsaWidgetError(
-                                                                snapshot.error?.toString() ?? 'No data found.',
-                                                              ),
-                                                            );
-                                                          }
-
-                                                          return Image.memory(
-                                                            snapshot.data!,
-                                                            width: MediaQuery.of(context).size.width,
-                                                            fit: BoxFit.contain,
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    top: 10,
-                                                    right: 10,
-                                                    child: ElevatedButton(
-                                                      child: const Icon(Icons.zoom_in),
-                                                      onPressed: () {},
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 16),
-                                              Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      reviewItem.label,
-                                                      style: const TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  TextButton(
-                                                    child: const Icon(Icons.close),
-                                                    onPressed: () {},
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  FilledButton(
-                                                    child: const Icon(Icons.check),
-                                                    onPressed: () {},
-                                                  ),
-                                                ],
-                                              ),
-                                              if (reviewItem.description != null)
-                                                Padding(
-                                                  padding: const EdgeInsets.only(top: 4),
-                                                  child: Text(
-                                                    reviewItem.description!,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.grey.shade800,
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
+                                      _WidgetReviewItem(
+                                        reviewItem,
+                                        documentVisualContent: _fileImageDisplays!,
+                                        comparisonDocumentVisualContent: _comparisonFileImageDisplays!,
+                                        highlightedContours: [
+                                          for (final result in _differenceResult!) result.contours,
+                                        ],
+                                        displayOnScreen: () {},
                                       ),
                                   ],
                                 );

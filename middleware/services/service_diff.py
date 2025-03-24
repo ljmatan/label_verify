@@ -43,10 +43,10 @@ class ServiceDiff:
                 x, y, w, h = cv2.boundingRect(contour)
 
                 # Calculate percentage values relative to image size
-                x_percent = (x / img_width) * 100
-                y_percent = (y / img_height) * 100
-                w_percent = (w / img_width) * 100
-                h_percent = (h / img_height) * 100
+                x_percent = x / img_width
+                y_percent = y / img_height
+                w_percent = w / img_width
+                h_percent = h / img_height
 
                 # Draw filled red rectangle with transparency
                 cv2.rectangle(overlay, (x, y), (x + w, y + h), (0, 0, 255), -1)

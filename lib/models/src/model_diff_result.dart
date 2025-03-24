@@ -4,42 +4,50 @@ class LvModelDiffResult {
   /// Default, unnamed class constructor.
   ///
   LvModelDiffResult({
-    required this.x,
-    required this.y,
+    required this.startPositionX,
+    required this.startPositionY,
     required this.width,
     required this.height,
-    required this.xPercent,
-    required this.yPercent,
+    required this.positionStartPercentX,
+    required this.positionStartPercentY,
     required this.widthPercent,
     required this.heightPercent,
   });
 
   /// Start coordinates expressed as pixels.
   ///
-  int x, y;
+  int startPositionX, startPositionY;
 
   /// The width and height of the highlighted area, starting from [x] and [y].
   ///
   int width, height;
 
-  /// Coordinate values [x] and [y] expressed as a percentage of the media content.
+  /// Start coordinate values expressed as a percentage of the media content.
   ///
-  double xPercent, yPercent;
+  double positionStartPercentX, positionStartPercentY;
 
   /// Highlighted area [width] and [height], expressed as a percentage of the media content.
   ///
   double widthPercent, heightPercent;
 
+  /// End position X coordinate value expressed as a percentage of the media content.
+  ///
+  double get positionEndPercentX => positionStartPercentX + widthPercent;
+
+  /// End position Y coordinate value expressed as a percentage of the media content.
+  ///
+  double get positionEndPercentY => positionStartPercentY + heightPercent;
+
   /// Factory constructor used to generate a class instance from JSON data format.
   ///
   factory LvModelDiffResult.fromJson(Map json) {
     return LvModelDiffResult(
-      x: json['x'],
-      y: json['y'],
+      startPositionX: json['x'],
+      startPositionY: json['y'],
       width: json['width'],
       height: json['height'],
-      xPercent: json['xPercent'],
-      yPercent: json['yPercent'],
+      positionStartPercentX: json['xPercent'],
+      positionStartPercentY: json['yPercent'],
       widthPercent: json['widthPercent'],
       heightPercent: json['heightPercent'],
     );
@@ -49,12 +57,12 @@ class LvModelDiffResult {
   ///
   Map<String, dynamic> toJson() {
     return {
-      'x': x,
-      'y': y,
+      'x': startPositionX,
+      'y': startPositionY,
       'width': width,
       'height': height,
-      'xPercent': xPercent,
-      'yPercent': yPercent,
+      'xPercent': positionStartPercentX,
+      'yPercent': positionStartPercentY,
       'widthPercent': widthPercent,
       'heightPercent': heightPercent,
     };
