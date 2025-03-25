@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import argparse
+from services.service_cli_args import ServiceCliArgs
 from services.service_conversion import ServiceConversion
 from services.service_diff import ServiceDiff
 from services.service_img import ServiceImg
@@ -143,11 +143,8 @@ def catch_all(path):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--ppid", type=int, required=True, help="Parent process ID.")
-    parser.add_argument("--port", type=int, required=True, help="Server port number.")
-    args = parser.parse_args()
+    args = ServiceCliArgs.get_args()
 
     ServiceProcess.start_monitoring(args.ppid)
 
-    app.run(host="0.0.0.0", port=int(args.port))
+    app.run(host="0.0.0.0", port=args.port)
