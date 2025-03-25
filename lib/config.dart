@@ -12,6 +12,12 @@ class LvConfig {
 
   /// Property holding the value to the defined project version.
   ///
+  /// Example usage:
+  ///
+  /// ```sh
+  /// flutter run --dart-define lvVersion=0.0.0.0
+  /// ```
+  ///
   String _version = const String.fromEnvironment('lvVersion');
 
   /// Defined project version.
@@ -22,6 +28,12 @@ class LvConfig {
   }
 
   /// Defines whether binary assets should be updated on the current build, and the old one removed.
+  ///
+  /// Example usage:
+  ///
+  /// ```sh
+  /// flutter run --dart-define lvBinAssetUpdate=true
+  /// ```
   ///
   bool binAssetUpdate = const String.fromEnvironment('lvBinAssetUpdate').toLowerCase() == 'true';
 
