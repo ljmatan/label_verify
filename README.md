@@ -29,7 +29,7 @@ with both of the major SDK systems used having considerable community support.
 ```txt
 label_verify
 │
-│── assets/             # Runtime binary and visual resources.
+│── assets/             # Runtime binary and visual resources
 │
 │── lib/                # Flutter project codebase
 │   │
@@ -100,4 +100,5 @@ flutter run --dart-define lvBinAssetUpdate=true
 ```
 
 The reason behind this requirement is the fact that, in order to run the Python server binary from the Flutter frontend,
-this binary file must be saved to the user device beforehand, and it's contents executed from this new storage location.
+this binary file located in the `assets` directory and bundled with the app must be first saved to the user device,
+and it's contents then executed from this new storage location.
