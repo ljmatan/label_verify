@@ -462,10 +462,12 @@ class LvWidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                                 Positioned(
                                   left: contour.positionStartPercentX * _mediaRenderBox!.size.width,
                                   top: contour.positionStartPercentY * _mediaRenderBox!.size.height,
-                                  child: _HighlightedArea(
-                                    child: SizedBox(
-                                      width: _mediaRenderBox!.size.width * contour.widthPercent,
-                                      height: _mediaRenderBox!.size.height * contour.heightPercent,
+                                  child: IgnorePointer(
+                                    child: _HighlightedArea(
+                                      child: SizedBox(
+                                        width: _mediaRenderBox!.size.width * contour.widthPercent,
+                                        height: _mediaRenderBox!.size.height * contour.heightPercent,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -705,10 +707,6 @@ class _DialogReviewInputState extends State<_DialogReviewInput> {
                         'Dynamic Text',
                         'must be changed across document versions. Alert will be raised if no changes are made, and otherwise, '
                             'a prompt will appear to confirm the changes.\n',
-                      ),
-                      (
-                        'Manual Verification Text',
-                        'must be manually verified with every new document version.\n',
                       ),
                       (
                         'Graphics',

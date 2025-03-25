@@ -1,6 +1,6 @@
 part of '../route_configure.dart';
 
-class _WidgetReviewItem extends StatelessWidget {
+class _WidgetReviewItem extends StatefulWidget {
   const _WidgetReviewItem(
     this.reviewItem, {
     required this.document,
@@ -20,7 +20,13 @@ class _WidgetReviewItem extends StatelessWidget {
   final void Function() removeReviewItem;
 
   @override
+  State<_WidgetReviewItem> createState() => _WidgetReviewItemState();
+}
+
+class _WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKeepAliveClientMixin {
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Card(
       color: Colors.white,
       margin: EdgeInsets.zero,
@@ -45,10 +51,10 @@ class _WidgetReviewItem extends StatelessWidget {
                       maxHeight: 400,
                     ),
                     child: FutureBuilder(
-                      future: document.getFileImageDisplays().then(
+                      future: widget.document.getFileImageDisplays().then(
                         (value) {
-                          return reviewItem.getImageDisplay(
-                            originalImage: value[reviewItem.page],
+                          return widget.reviewItem.getImageDisplay(
+                            originalImage: value[widget.reviewItem.page],
                           );
                         },
                       ),
@@ -80,7 +86,7 @@ class _WidgetReviewItem extends StatelessWidget {
                         return ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: Image.memory(
-                            reviewItem.imageDisplay!,
+                            widget.reviewItem.imageDisplay!,
                             width: MediaQuery.of(context).size.width,
                             fit: BoxFit.contain,
                           ),
@@ -99,14 +105,14 @@ class _WidgetReviewItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        reviewItem.label,
+                        widget.reviewItem.label,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
                       ),
                       Text(
-                        reviewItem.type.displayName,
+                        widget.reviewItem.type.displayName,
                         style: const TextStyle(
                           fontWeight: FontWeight.w300,
                           color: Colors.grey,
@@ -122,20 +128,20 @@ class _WidgetReviewItem extends StatelessWidget {
                     child: const Icon(Icons.close),
                     onPressed: () async {
                       final confirmed = await GsaWidgetOverlayConfirmation(
-                        'Are you sure you want to remove "${reviewItem.label}"?',
+                        'Are you sure you want to remove "${widget.reviewItem.label}"?',
                       ).openDialog(context);
-                      if (confirmed) removeReviewItem();
+                      if (confirmed) widget.removeReviewItem();
                     },
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            if (reviewItem.description?.isNotEmpty == true)
+            if (widget.reviewItem.description?.isNotEmpty == true)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  reviewItem.description!,
+                  widget.reviewItem.description!,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade800,
@@ -147,4 +153,7 @@ class _WidgetReviewItem extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

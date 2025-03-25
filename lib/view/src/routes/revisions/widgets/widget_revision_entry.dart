@@ -28,7 +28,7 @@ class _WidgetRevisionEntry extends StatefulWidget {
   State<_WidgetRevisionEntry> createState() => __WidgetRevisionEntryState();
 }
 
-class __WidgetRevisionEntryState extends State<_WidgetRevisionEntry> {
+class __WidgetRevisionEntryState extends State<_WidgetRevisionEntry> with AutomaticKeepAliveClientMixin {
   late Future<List<Uint8List>> _getImageDisplays;
 
   @override
@@ -39,6 +39,7 @@ class __WidgetRevisionEntryState extends State<_WidgetRevisionEntry> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return InkWell(
       highlightColor: Colors.transparent,
       focusColor: Colors.transparent,
@@ -69,6 +70,7 @@ class __WidgetRevisionEntryState extends State<_WidgetRevisionEntry> {
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   fit: BoxFit.cover,
+                  gaplessPlayback: true,
                 ),
                 Positioned(
                   top: 12,
@@ -200,4 +202,7 @@ class __WidgetRevisionEntryState extends State<_WidgetRevisionEntry> {
             },
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

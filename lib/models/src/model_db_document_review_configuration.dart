@@ -6,7 +6,6 @@ import 'package:label_verify/services/src/service_images.dart';
 enum LvModelDocumentReviewConfigurationType {
   staticText,
   dynamicText,
-  manualVerificationText,
   graphics;
 
   String get displayName {
@@ -15,8 +14,6 @@ enum LvModelDocumentReviewConfigurationType {
         return 'Static Text';
       case LvModelDocumentReviewConfigurationType.dynamicText:
         return 'Dynamic Text';
-      case LvModelDocumentReviewConfigurationType.manualVerificationText:
-        return 'Manual Verification Text';
       case LvModelDocumentReviewConfigurationType.graphics:
         return 'Graphical Image Display';
     }

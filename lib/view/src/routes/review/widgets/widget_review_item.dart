@@ -37,19 +37,16 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKee
     super.initState();
     _zoneHighlighted = widget.highlightedContours[widget.reviewItem.page].any(
       (contour) {
-        bool overlaps() {
-          if (widget.reviewItem.positionEndPercentX < contour.positionStartPercentX ||
-              widget.reviewItem.positionStartPercentX > contour.positionEndPercentX) {
-            return false;
-          }
-          if (widget.reviewItem.positionEndPercentY < contour.positionStartPercentY ||
-              widget.reviewItem.positionStartPercentY > contour.positionEndPercentY) {
-            return false;
-          }
-          return true;
+        late bool overlaps;
+        if (widget.reviewItem.positionEndPercentX < contour.positionStartPercentX ||
+            widget.reviewItem.positionStartPercentX > contour.positionEndPercentX ||
+            widget.reviewItem.positionEndPercentY < contour.positionStartPercentY ||
+            widget.reviewItem.positionStartPercentY > contour.positionEndPercentY) {
+          overlaps = false;
+        } else {
+          overlaps = true;
         }
-
-        return overlaps() && widget.reviewItem.type != LvModelDocumentReviewConfigurationType.dynamicText;
+        return widget.reviewItem.type == LvModelDocumentReviewConfigurationType.dynamicText && !overlaps || overlaps;
       },
     );
   }
@@ -102,6 +99,7 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKee
                             snapshot.data!,
                             width: MediaQuery.of(context).size.width,
                             fit: BoxFit.cover,
+                            gaplessPlayback: true,
                           ),
                         );
                       },

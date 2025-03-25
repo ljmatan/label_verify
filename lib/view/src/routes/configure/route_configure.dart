@@ -170,7 +170,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
                                             ),
                                           Expanded(
                                             child: Text(
-                                              widget.document.fileName.toUpperCase(),
+                                              widget.document.label.toUpperCase(),
                                               textAlign: TextAlign.end,
                                               style: const TextStyle(
                                                 color: Colors.white,

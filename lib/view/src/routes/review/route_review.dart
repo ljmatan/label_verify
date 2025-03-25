@@ -142,17 +142,28 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                                      child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Text(
-                                          widget.document.label.toUpperCase(),
-                                          textAlign: TextAlign.end,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w300,
-                                            fontSize: 12,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            widget.document.label.toUpperCase(),
+                                            textAlign: TextAlign.end,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w300,
+                                              fontSize: 12,
+                                            ),
                                           ),
-                                        ),
+                                          Text(
+                                            widget.document.createdAt.toIso8601String().substring(0, 16).replaceAll('T', ' '),
+                                            textAlign: TextAlign.end,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w300,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     Wrap(

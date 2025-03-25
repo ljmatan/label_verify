@@ -1,14 +1,24 @@
-import 'package:label_verify/data/data.dart';
+import 'package:generic_shop_app_architecture/gsar.dart';
 import 'package:label_verify/models/models.dart';
 
 /// Data class holding references and properties to the available document files.
 ///
-class LvDataDocuments extends LvData {
+class LvDataDocuments extends GsaData {
   LvDataDocuments._();
 
   /// Globally-accessible singleton class instance.
   ///
   static final instance = LvDataDocuments._();
+
+  @override
+  void clear() {
+    _collection.clear();
+  }
+
+  @override
+  Future<void> init() async {
+    // Do nothing.
+  }
 
   /// Private object containing instances of the available documents.
   ///

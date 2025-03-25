@@ -388,7 +388,7 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
 
   @override
   void dispose() {
-    LvDataDocuments.instance.removeListener(_onDocumentUpdates);
+    LvDataDocuments.instance.removeListener(callback: _onDocumentUpdates);
     super.dispose();
   }
 }
