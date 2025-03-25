@@ -68,12 +68,25 @@ $ flutter run -d linux
 ```
 
 Required project resources include the Python middleware binary compiled with PyInstaller,
-which is located in the `assets/bin` directory, and which is shared by utilising the "Git Large File Storage" service.
+which is located in the `assets/bin` directory, and which is also shared by utilising the "Git Large File Storage" service.
 
-### 3.1. Middleware Updates
+### 3.1. Middleware Running
+
+In order to run the middleware server as a standalone program, two named CLI arguments are required: `port` and `ppid`.
+
+The `port` number is specified in order to bind the program and listen to any incoming connections,
+with the `ppid` value being required to be set to `-1`.
+The latter refers to the parent process ID, which is required by the Python program in order to clear any runtime resources
+during standard operation, which refers to starting a child process from the Flutter app.
+
+```sh
+python3 middleware/main.py --port 49152 --ppid -1
+```
+
+### 3.2. Middleware Updates
 
 If any changes are made to the Python part of the project,
-a new binary needs to be compiled and placed into the relevant location.
+a new binary needs to be compiled and moved to an appropriate location.
 
 The process is automated with the following script usage on MacOS and Linux:
 
@@ -81,9 +94,14 @@ The process is automated with the following script usage on MacOS and Linux:
 sh scripts/build-middleware.sh
 ```
 
+The script will generate a new binary file, then move it to the `assets/bin` directory.
+
 In order to ensure any cached program data is also updated during the following runtime,
 the `--dart-define lvBinAssetUpdate=true` value should be forwarded alongside the run command:
 
 ```sh
 flutter run --dart-define lvBinAssetUpdate=true
 ```
+
+The reason behind this requirement is the fact that, in order to run the Python server binary from the Flutter frontend,
+this binary file must be saved to the user device beforehand, and it's contents executed from this new storage location.

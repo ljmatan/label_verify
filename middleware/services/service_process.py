@@ -38,6 +38,10 @@ class ServiceProcess:
         Start monitoring the parent process in a separate thread.
         """
 
+        if parent_pid == -1:
+            # No parent process ID provided.
+            return
+
         monitor_thread = threading.Thread(target=cls.monitor_parent, args=(parent_pid,))
         monitor_thread.daemon = (
             True  # Allow the thread to exit when the main program exits
