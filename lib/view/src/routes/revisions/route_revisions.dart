@@ -2,9 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:generic_shop_app_content/gsac.dart';
 import 'package:label_verify/models/src/model_db_document.dart';
-import 'package:label_verify/services/src/service_db.dart';
+import 'package:label_verify/models/src/model_db_document_revision.dart';
+import 'package:label_verify/services/services.dart';
 import 'package:label_verify/view/src/common/widgets/widget_navigation_bar.dart';
+import 'package:label_verify/view/src/routes/configure/route_configure.dart';
 import 'package:label_verify/view/src/routes/review/route_review.dart';
+
+part 'widgets/widget_revision_entry.dart';
 
 /// Route used for reviewing of any recorded historical document data.
 ///
@@ -25,6 +29,29 @@ class LvRouteDocumentRevisions extends StatefulWidget {
 }
 
 class _LvRouteDocumentRevisionsState extends State<LvRouteDocumentRevisions> {
+  /// Future object implemented for retrieving any relevant revision data.
+  ///
+  late Future<List<LvModelDocumentRevision>> _getRevisionData;
+
+  /// A collection of revisions collected from the [_getRevisionData] method.
+  ///
+  List<LvModelDocumentRevision>? _revisions;
+
+  @override
+  void initState() {
+    super.initState();
+    _getRevisionData = LvServiceDatabase.instance
+        .getDocumentRevisionsForId(
+      widget.document.id,
+    )
+        .then(
+      (value) {
+        _revisions = value;
+        return _revisions!;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,9 +62,7 @@ class _LvRouteDocumentRevisionsState extends State<LvRouteDocumentRevisions> {
           ),
           Expanded(
             child: FutureBuilder(
-              future: LvServiceDatabase.instance.getDocumentRevisionsForId(
-                widget.document.id,
-              ),
+              future: _getRevisionData,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(
@@ -53,7 +78,7 @@ class _LvRouteDocumentRevisionsState extends State<LvRouteDocumentRevisions> {
                   );
                 }
 
-                final documentCollection = List.from(snapshot.data!)..insert(0, widget.document);
+                final documentCollection = List.from(_revisions!)..insert(0, widget.document);
 
                 return ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -76,119 +101,14 @@ class _LvRouteDocumentRevisionsState extends State<LvRouteDocumentRevisions> {
                       itemCount: documentCollection.length,
                       itemBuilder: (context, index) {
                         final document = documentCollection[index];
-                        return InkWell(
-                          highlightColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          child: Card(
-                            clipBehavior: Clip.antiAliasWithSaveLayer,
-                            margin: EdgeInsets.zero,
-                            child: FutureBuilder<List<Uint8List>>(
-                              future: document.getFileImageDisplays(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState != ConnectionState.done) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-
-                                if (snapshot.hasError || snapshot.data?.isNotEmpty != true) {
-                                  return Center(
-                                    child: GsaWidgetError(snapshot.error?.toString() ?? 'No data found.'),
-                                  );
-                                }
-
-                                return Stack(
-                                  children: [
-                                    Image.memory(
-                                      snapshot.data![0],
-                                      width: MediaQuery.of(context).size.width,
-                                      height: MediaQuery.of(context).size.height,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    if (index != 0)
-                                      const Positioned(
-                                        top: 12,
-                                        right: 12,
-                                        child: Card(
-                                          margin: EdgeInsets.zero,
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  'Review ',
-                                                ),
-                                                Icon(
-                                                  Icons.info_outline,
-                                                  size: 16,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    Positioned(
-                                      left: 0,
-                                      right: 0,
-                                      bottom: 0,
-                                      child: DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          boxShadow: kElevationToShadow[16],
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                                          child: Builder(
-                                            builder: (context) {
-                                              final documentTime = document.createdAt as DateTime;
-                                              return Text.rich(
-                                                TextSpan(
-                                                  text: '#${index + 1} ',
-                                                  children: [
-                                                    TextSpan(
-                                                      text: '${documentTime.day.toString().padLeft(2, '0')}.'
-                                                          '${documentTime.month.toString().padLeft(2, '0')}.'
-                                                          '${documentTime.year} '
-                                                          '${documentTime.hour.toString().padLeft(2, '0')}:'
-                                                          '${documentTime.minute.toString().padLeft(2, '0')}:'
-                                                          '${documentTime.second.toString().padLeft(2, '0')}',
-                                                      style: const TextStyle(
-                                                        fontWeight: FontWeight.normal,
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.grey,
-                                                  fontSize: 12,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                          onTap: index == 0
-                              ? null
-                              : () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (BuildContext context) => LvRouteReview(
-                                        document: widget.document,
-                                        comparisonDocument: document,
-                                      ),
-                                    ),
-                                  );
-                                },
+                        return _WidgetRevisionEntry(
+                          index,
+                          document: document,
+                          originalDocument: widget.document,
+                          onDocumentRemoved: () {
+                            _revisions?.removeWhere((revision) => revision.id == document.id);
+                            setState(() {});
+                          },
                         );
                       },
                     ),

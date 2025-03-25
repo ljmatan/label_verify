@@ -213,6 +213,16 @@ class LvWidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
     );
   }
 
+  /// Displays and higlights the specified [reviewItem].
+  ///
+  void displayReviewItem(LvModelDocumentReviewConfiguration reviewItem) {
+    setState(
+      () {
+        _page = reviewItem.page;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
@@ -300,7 +310,13 @@ class LvWidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                                               positionStartPercentY = _startPosition!.yPercent,
                                               positionEndPercentX = _endPosition!.xPercent,
                                               positionEndPercentY = _endPosition!.yPercent;
+                                          final differenceX = _startPosition!.x - _endPosition!.x,
+                                              differenceY = _startPosition!.y - _endPosition!.y;
                                           _resetPositionInfo();
+                                          if ((differenceX < 0 && differenceX > -2 || differenceX >= 0 && differenceX < 2) &&
+                                              (differenceY < 0 && differenceY > -2 || differenceY >= 0 && differenceY < 2)) {
+                                            return;
+                                          }
                                           const GsaWidgetOverlayContentBlocking().openDialog(context);
                                           try {
                                             await showDialog(
@@ -309,10 +325,18 @@ class LvWidgetReviewSelectionState extends State<LvWidgetMediaReviewSelection> {
                                                 return _DialogReviewInput(
                                                   document: widget.contentDocument,
                                                   page: _page,
-                                                  positionStartPercentX: positionStartPercentX,
-                                                  positionStartPercentY: positionStartPercentY,
-                                                  positionEndPercentX: positionEndPercentX,
-                                                  positionEndPercentY: positionEndPercentY,
+                                                  positionStartPercentX: positionStartPercentX < positionEndPercentX
+                                                      ? positionStartPercentX
+                                                      : positionEndPercentX,
+                                                  positionStartPercentY: positionStartPercentY < positionEndPercentY
+                                                      ? positionStartPercentY
+                                                      : positionEndPercentY,
+                                                  positionEndPercentX: positionEndPercentX > positionStartPercentX
+                                                      ? positionEndPercentX
+                                                      : positionStartPercentX,
+                                                  positionEndPercentY: positionEndPercentY > positionStartPercentY
+                                                      ? positionEndPercentY
+                                                      : positionStartPercentY,
                                                   addReviewItem: widget.addReviewItem!,
                                                 );
                                               },

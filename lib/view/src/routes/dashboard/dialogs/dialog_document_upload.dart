@@ -42,7 +42,7 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
 
   /// If a document is selected from the existing document list, the ID will be recorded to this property.
   ///
-  int? _selectedFileId;
+  LvModelDocument? _selectedFile;
 
   @override
   Widget build(BuildContext context) {
@@ -135,23 +135,68 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
                             dropdownMenuEntries: [
                               for (final document in LvDataDocuments.instance.collection)
                                 DropdownMenuEntry(
-                                  value: document.id,
-                                  label: document.fileName,
+                                  value: document,
+                                  label: document.label,
                                 ),
                             ],
                             enableFilter: true,
                             expandedInsets: EdgeInsets.zero,
                             onSelected: (value) {
-                              setState(() => _selectedFileId = value);
+                              setState(() => _selectedFile = value);
                             },
                           ),
                         ),
                         const SizedBox(width: 10),
                         FilledButton(
                           child: const Text('CONFIRM'),
-                          onPressed: _selectedFileId != null
+                          onPressed: _selectedFile != null
                               ? () async {
                                   Navigator.pop(context);
+                                  final file = await LvServiceFiles.instance.getFile(
+                                    LvServiceFilesType.document,
+                                  );
+                                  if (file == null) return;
+                                  const GsaWidgetOverlayContentBlocking().openDialog(LvApp.navigatorKey.currentContext!);
+                                  try {
+                                    if (file.pagesNumber != _selectedFile!.pages) {
+                                      const GsaWidgetOverlayAlert(
+                                        title: 'Error',
+                                        message: 'Page number does not match.',
+                                      ).openDialog(LvApp.navigatorKey.currentContext!);
+                                      return;
+                                    }
+                                    final storedFile = await LvServiceFiles.instance.storeFile(
+                                      fileBytes: file.fileBytes,
+                                      fileType: file.fileType,
+                                    );
+                                    final comparisonDocument = LvModelDocumentRevision(
+                                      id: -1,
+                                      documentId: _selectedFile!.id,
+                                      createdAt: DateTime.now(),
+                                      filePath: storedFile.filePath,
+                                      fileImageDisplayPaths: storedFile.fileImageDisplayPaths,
+                                    );
+                                    final comparisonDocumentId = await LvServiceDatabase.instance.insertDocumentRevision(
+                                      comparisonDocument,
+                                    );
+                                    comparisonDocument.id = comparisonDocumentId;
+                                    Navigator.pop(LvApp.navigatorKey.currentContext!);
+                                    Navigator.of(LvApp.navigatorKey.currentContext!).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (BuildContext context) => LvRouteReview(
+                                          document: _selectedFile!,
+                                          comparisonDocument: comparisonDocument,
+                                        ),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    debugPrint('Error adding document revision: $e');
+                                    Navigator.pop(LvApp.navigatorKey.currentContext!);
+                                    GsaWidgetOverlayAlert(
+                                      title: 'Error',
+                                      message: '$e',
+                                    ).openDialog(LvApp.navigatorKey.currentContext!);
+                                  }
                                 }
                               : null,
                         ),

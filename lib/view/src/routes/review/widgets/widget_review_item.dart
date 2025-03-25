@@ -29,7 +29,7 @@ class _WidgetReviewItem extends StatefulWidget {
   State<_WidgetReviewItem> createState() => __WidgetReviewItemState();
 }
 
-class __WidgetReviewItemState extends State<_WidgetReviewItem> {
+class __WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKeepAliveClientMixin {
   late bool _zoneHighlighted;
 
   @override
@@ -37,17 +37,26 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> {
     super.initState();
     _zoneHighlighted = widget.highlightedContours[widget.reviewItem.page].any(
       (contour) {
-        final isHighlighted = contour.positionStartPercentX >= widget.reviewItem.positionStartPercentX &&
-            contour.positionEndPercentX <= widget.reviewItem.positionEndPercentX &&
-            contour.positionStartPercentY >= widget.reviewItem.positionStartPercentY &&
-            contour.positionEndPercentY <= widget.reviewItem.positionEndPercentY;
-        return isHighlighted && widget.reviewItem.type != LvModelDocumentReviewConfigurationType.dynamicText;
+        bool overlaps() {
+          if (widget.reviewItem.positionEndPercentX < contour.positionStartPercentX ||
+              widget.reviewItem.positionStartPercentX > contour.positionEndPercentX) {
+            return false;
+          }
+          if (widget.reviewItem.positionEndPercentY < contour.positionStartPercentY ||
+              widget.reviewItem.positionStartPercentY > contour.positionEndPercentY) {
+            return false;
+          }
+          return true;
+        }
+
+        return overlaps() && widget.reviewItem.type != LvModelDocumentReviewConfigurationType.dynamicText;
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Card(
       color: Colors.white,
       child: Padding(
@@ -105,7 +114,7 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> {
                   child: Tooltip(
                     message: 'Higlight content',
                     child: ElevatedButton(
-                      child: const Icon(Icons.zoom_in),
+                      child: const Icon(Icons.visibility),
                       onPressed: () {},
                     ),
                   ),
@@ -182,4 +191,7 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

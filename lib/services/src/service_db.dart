@@ -111,10 +111,12 @@ extension LvServiceDatabaseDocumentQueries on LvServiceDatabase {
   Future<int> insertDocument(
     LvModelDocument document,
   ) async {
-    return await db.insert(
+    final id = await db.insert(
       _documentTableId,
       document.toJson()..['id'] = null,
     );
+    document.id = id;
+    return id;
   }
 
   /// Removes a document with a specified [documentId].
@@ -189,10 +191,12 @@ extension LvServiceDatabaseDocumentCategoryQueries on LvServiceDatabase {
   Future<int> insertDocumentCategory(
     LvModelDocumentCategory documentCategory,
   ) async {
-    return await db.insert(
+    final id = await db.insert(
       _documentCategoryTableId,
       documentCategory.toJson()..['id'] = null,
     );
+    documentCategory.id = id;
+    return id;
   }
 
   /// Removes a document category with a specified [documentCategoryId].
@@ -329,10 +333,12 @@ extension LvServiceDatabaseDocumentRevisionQueries on LvServiceDatabase {
   Future<int> insertDocumentRevision(
     LvModelDocumentRevision documentRevision,
   ) async {
-    return await db.insert(
+    final id = await db.insert(
       _documentRevisionsTableId,
       documentRevision.toJson()..['id'] = null,
     );
+    documentRevision.id = id;
+    return id;
   }
 
   /// Removes a document revision with a specified [documentRevisionId].

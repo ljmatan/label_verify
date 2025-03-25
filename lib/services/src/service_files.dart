@@ -4,16 +4,10 @@ import 'dart:math' as dart_math;
 
 import 'package:flutter/foundation.dart';
 import 'package:generic_shop_app_architecture/gsar.dart';
-import 'package:label_verify/config.dart';
-import 'package:label_verify/data/src/data_documents.dart';
-import 'package:label_verify/main.dart';
 import 'package:label_verify/models/models.dart';
 import 'package:label_verify/services/src/service_conversion.dart';
-import 'package:label_verify/view/src/common/dialogs/dialog_content_blocking.dart';
 import 'package:collection/collection.dart' as collection;
 import 'package:file_picker/file_picker.dart' as file_picker;
-import 'package:file_saver/file_saver.dart' as file_saver;
-import 'package:archive/archive.dart' as archive;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path/path.dart' as path;
 import 'package:printing/printing.dart' as printing;
@@ -258,131 +252,25 @@ class LvServiceFiles extends GsaService {
     );
   }
 
-  // /// Exports the file to the user device.
-  // ///
-  // Future<void> dataExport({
-  //   dynamic data,
-  //   String? fileName,
-  // }) async {
-  //   if (LvApp.navigatorKey.currentContext == null) return;
-  //   showDialog(
-  //     context: LvApp.navigatorKey.currentContext!,
-  //     builder: (context) {
-  //       return Center(
-  //         child: AlertDialog.adaptive(
-  //           content: Text(
-  //             'LOADING',
-  //             style: TextStyle(
-  //               fontWeight: FontWeight.w900,
-  //               fontSize: 18,
-  //             ),
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  //   // Wait for the dialog content to be fully displayed,
-  //   // below method is blocking the main thread.
-  //   await Future.delayed(const Duration(milliseconds: 600));
-  //   try {
-  //     final json = {
-  //       'time': DateTime.now().toIso8601String(),
-  //       'version': LvConfig.instance.version,
-  //       if (data != null)
-  //         'data': data
-  //       else ...{
-  //         'documents': LvDataDocuments.instance.collection
-  //             .map(
-  //               (document) => document.toJson(),
-  //             )
-  //             .toList(),
-  //         'documentFiles': [
-  //           for (final document in LvDataDocuments.instance.collection)
-  //             {
-  //               'id': document.id,
-  //               'filePath': document.filePath,
-  //             },
-  //         ],
-  //       },
-  //     };
-  //     final jsonText = dart_convert.JsonEncoder.withIndent(' ' * 2).convert(json);
-  //     final jsonBytes = dart_convert.utf8.encode(jsonText);
-  //     final jsonCompressedBytes = archive.GZipEncoder().encode(jsonBytes);
-  //     fileName ??= 'lv_${DateTime.now().millisecondsSinceEpoch}.json.txt.gz';
-  //     await file_saver.FileSaver.instance.saveFile(
-  //       name: fileName,
-  //       bytes: Uint8List.fromList(jsonCompressedBytes),
-  //     );
-  //   } catch (e) {
-  //     debugPrint('$e');
-  //   }
-  //   Navigator.pop(LvApp.navigatorKey.currentContext!);
-  // }
+  /// Removes the specified document files from the local file system.
+  ///
+  Future<void> deleteDocumentFiles(LvModelDocument document) async {
+    for (final filePath in <String>{
+      document.filePath,
+      ...document.fileImageDisplayPaths,
+    }) {
+      await dart_io.File(filePath).delete();
+    }
+  }
 
-  // /// Imports the data exported with the [dataExport] function.
-  // ///
-  // Future<void> dataImport() async {
-  //   try {
-  //     final importFile = await getFile(LvServiceFilesType.importData);
-  //     if (importFile != null) {
-  //       LvDialogContentBlocking.display();
-  //       final fileType = importFile.fileName.split('.').last;
-  //       if (LvServiceFilesType.importData.allowedTypeIdentifiers.contains(fileType)) {
-  //         late Map jsonData;
-  //         switch (fileType) {
-  //           case 'txt':
-  //           case 'json':
-  //             final jsonText = dart_convert.utf8.decode(importFile.fileBytes);
-  //             final jsonDecoded = dart_convert.jsonDecode(jsonText);
-  //             jsonData = Map<String, dynamic>.from(jsonDecoded);
-  //             break;
-  //           case 'gz':
-  //             final decompressedFileBytes = archive.GZipDecoder().decodeBytes(importFile.fileBytes);
-  //             final jsonText = dart_convert.utf8.decode(decompressedFileBytes);
-  //             final jsonDecoded = dart_convert.jsonDecode(jsonText);
-  //             jsonData = Map<String, dynamic>.from(jsonDecoded);
-  //             break;
-  //           default:
-  //             throw 'Not implemented.';
-  //         }
-  //         if (jsonData['time'] is! String ||
-  //             jsonData['version'] is! String ||
-  //             jsonData['documents'] is! Iterable ||
-  //             jsonData['documentFiles'] is! Iterable) {
-  //           throw 'Invalid import data.';
-  //         }
-  //         LvDataDocuments.instance.collection.clear();
-  //         LvDataDocuments.instance.collection.addAll(
-  //           [
-  //             for (final jsonObject in jsonData['documents']) LvModelDocument.fromJson(jsonObject),
-  //           ],
-  //         );
-  //         for (final documentFile in jsonData['documentFiles']) {
-  //           if (documentFile['id'] is String && documentFile['bytes'] is Iterable) {
-  //             final pageFileBytes = <Uint8List>[];
-  //             for (final fileBytes in documentFile['bytes']) {
-  //               try {
-  //                 pageFileBytes.add(
-  //                   Uint8List.fromList(
-  //                     List<int>.from(fileBytes),
-  //                   ),
-  //                 );
-  //               } catch (e) {
-  //                 // Do nothing.
-  //               }
-  //             }
-  //             LvDataDocuments.instance.collection
-  //                 .firstWhereOrNull(
-  //                   (document) => document.id == documentFile['id'],
-  //                 )
-  //                 ?. = pageFileBytes;
-  //           }
-  //         }
-  //       }
-  //     }
-  //   } catch (e) {
-  //     debugPrint('$e');
-  //   }
-  //   LvDialogContentBlocking.close();
-  // }
+  /// Removes the document revision files from the local file system.
+  ///
+  Future<void> deleteDocumentRevisionFiles(LvModelDocumentRevision documentRevision) async {
+    for (final filePath in <String>{
+      documentRevision.filePath,
+      ...documentRevision.fileImageDisplayPaths,
+    }) {
+      await dart_io.File(filePath).delete();
+    }
+  }
 }

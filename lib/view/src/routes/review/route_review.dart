@@ -65,7 +65,10 @@ class _LvRouteReviewState extends State<LvRouteReview> {
       widget.document.id,
     );
     if (reviewConfiguration.isEmpty) {
-      throw Exception('No review configuration set up for this document.');
+      throw Exception(
+        'No review configuration set up for this document.\n\n'
+        'This is required for document processing, and can be specified with the "REVIEW" menu.',
+      );
     }
     _reviewConfiguration = reviewConfiguration;
     final differenceResult = [
@@ -219,7 +222,9 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                         highlightedContours: [
                                           for (final result in _differenceResult!) result.contours,
                                         ],
-                                        displayOnScreen: () {},
+                                        displayOnScreen: () {
+                                          _reviewSelectionKey.currentState?.displayReviewItem(reviewItem);
+                                        },
                                       ),
                                   ],
                                 );

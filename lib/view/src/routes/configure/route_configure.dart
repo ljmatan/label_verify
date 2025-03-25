@@ -46,10 +46,15 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
     );
   }
 
+  /// Defines whether any configuration changes have been submitted.
+  ///
+  bool _configurationUpdated = false;
+
   /// Method invoked on successful addition of a review item.
   ///
   void _addReviewItem(LvModelDocumentReviewConfiguration value) {
     _reviewItems.add(value);
+    _configurationUpdated = true;
     setState(() {});
   }
 
@@ -57,13 +62,8 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
   ///
   void _removeReviewItem(LvModelDocumentReviewConfiguration value) {
     _reviewItems.remove(value);
+    _configurationUpdated = true;
     setState(() {});
-  }
-
-  /// Value determining whether any review items have been submitted by the user.
-  ///
-  bool get _reviewItemsSubmitted {
-    return _reviewItems.isNotEmpty == true;
   }
 
   /// Store the current changes as a database record.
@@ -78,6 +78,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
         title: 'Success',
         message: 'Changes saved successfully.',
       ).openDialog(context);
+      _configurationUpdated = false;
     } catch (e) {
       Navigator.pop(context);
       GsaWidgetOverlayAlert(
@@ -92,8 +93,18 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
     return Scaffold(
       body: Column(
         children: [
-          const LvWidgetNavigationBar(
+          LvWidgetNavigationBar(
             label: 'Configure',
+            onBackPressed: () async {
+              if (_configurationUpdated) {
+                final confirmed = await const GsaWidgetOverlayConfirmation(
+                  'Exit without saving changes?',
+                ).openDialog(context);
+                if (confirmed == true) Navigator.pop(context);
+              } else {
+                Navigator.pop(context);
+              }
+            },
           ),
           Expanded(
             child: FutureBuilder(
@@ -146,7 +157,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
                                       padding: const EdgeInsets.only(bottom: 10),
                                       child: Row(
                                         children: [
-                                          if (_reviewItemsSubmitted)
+                                          if (_configurationUpdated)
                                             Tooltip(
                                               message: 'Confirm all of the current changes without exiting the screen.',
                                               child: FilledButton.icon(
@@ -180,7 +191,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
                             child: ListView(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                               children: [
-                                if (!_reviewItemsSubmitted) ...[
+                                if (_reviewItems.isNotEmpty != true) ...[
                                   const Text(
                                     'To start adding parameters, simply click and drag across any media section you want to track. '
                                     'This specific selection is later used when reviewing future document changes.\n\n'

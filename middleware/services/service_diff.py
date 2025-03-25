@@ -13,7 +13,7 @@ class ServiceDiff:
         cls,
         img1: np.ndarray,
         img2: np.ndarray,
-        min_contour_area=50,
+        min_contour_area=20,
     ) -> Tuple[np.ndarray, List[Dict]]:
         """
         Highlights differences between two base64-encoded images by drawing semi-transparent filled bounding boxes
