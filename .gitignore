@@ -47,3 +47,5 @@ app.*.map.json
 pubspec.lock
 
 assets/bin/python
+
+.metadata
