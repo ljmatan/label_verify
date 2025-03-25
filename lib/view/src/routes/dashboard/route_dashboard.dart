@@ -326,7 +326,7 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                                                                   final confirmed = await GsaWidgetOverlayConfirmation(
                                                                     'Are you sure you want to delete "${item.label}"?',
                                                                   ).openDialog(context);
-                                                                  if (confirmed) {
+                                                                  if (confirmed == true) {
                                                                     const GsaWidgetOverlayContentBlocking().openDialog(context);
                                                                     try {
                                                                       await LvServiceDatabase.instance.removeDocument(item.id);

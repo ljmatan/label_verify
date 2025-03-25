@@ -130,7 +130,7 @@ class _WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKeep
                       final confirmed = await GsaWidgetOverlayConfirmation(
                         'Are you sure you want to remove "${widget.reviewItem.label}"?',
                       ).openDialog(context);
-                      if (confirmed) widget.removeReviewItem();
+                      if (confirmed == true) widget.removeReviewItem();
                     },
                   ),
                 ),

@@ -29,7 +29,7 @@ with both of the major SDK systems used having considerable community support.
 ```txt
 label_verify
 │
-│── assets/             # Visual resources (images, fonts, etc.)
+│── assets/             # Runtime binary and visual resources.
 │
 │── lib/                # Flutter project codebase
 │   │
