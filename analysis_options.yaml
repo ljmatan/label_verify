@@ -10,3 +10,4 @@ linter:
     require_trailing_commas: true
     always_use_package_imports: true
     public_member_api_docs: true
+    prefer_const_constructors: true
