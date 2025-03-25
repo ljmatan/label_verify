@@ -175,6 +175,8 @@ class __DialogDocumentUploadState extends State<_DialogDocumentUpload> {
                                       createdAt: DateTime.now(),
                                       filePath: storedFile.filePath,
                                       fileImageDisplayPaths: storedFile.fileImageDisplayPaths,
+                                      successConfigurationIds: [],
+                                      errorConfigurationIds: [],
                                     );
                                     final comparisonDocumentId = await LvServiceDatabase.instance.insertDocumentRevision(
                                       comparisonDocument,

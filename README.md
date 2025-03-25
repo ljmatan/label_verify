@@ -80,3 +80,10 @@ The process is automated with the following script usage on MacOS and Linux:
 ```sh
 sh scripts/build-middleware.sh
 ```
+
+In order to ensure any cached program data is also updated during the following runtime,
+the `--dart-define lvBinAssetUpdate=true` value should be forwarded alongside the run command:
+
+```sh
+flutter run --dart-define lvBinAssetUpdate=true
+```

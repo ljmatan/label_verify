@@ -6,6 +6,8 @@ class _WidgetReviewItem extends StatefulWidget {
     required this.documentVisualContent,
     required this.comparisonDocumentVisualContent,
     required this.highlightedContours,
+    required this.reviewed,
+    required this.onStateUpdate,
     required this.displayOnScreen,
   });
 
@@ -20,6 +22,14 @@ class _WidgetReviewItem extends StatefulWidget {
   /// A collection of detected image differences.
   ///
   final List<List<LvModelDiffResult>> highlightedContours;
+
+  /// Property defining whether the item has been reviewed by the user.
+  ///
+  final bool reviewed;
+
+  /// Method invoked on each review item state update (moving to success or error column).
+  ///
+  final Function(bool? success) onStateUpdate;
 
   /// Function implemented for displaying of the specified content on screen.
   ///
@@ -144,15 +154,37 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKee
                     ],
                   ),
                 ),
-                TextButton(
-                  child: const Icon(Icons.close),
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 6),
-                FilledButton(
-                  child: const Icon(Icons.check),
-                  onPressed: () {},
-                ),
+                if (widget.reviewed)
+                  Tooltip(
+                    message: 'Invalidate the review status.',
+                    child: TextButton(
+                      child: const Icon(Icons.undo),
+                      onPressed: () {
+                        widget.onStateUpdate(null);
+                      },
+                    ),
+                  )
+                else ...[
+                  Tooltip(
+                    message: 'Mark the item as having an error.',
+                    child: TextButton(
+                      child: const Icon(Icons.close),
+                      onPressed: () {
+                        widget.onStateUpdate(false);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message: 'Mark the item as successfully reviewed.',
+                    child: FilledButton(
+                      child: const Icon(Icons.check),
+                      onPressed: () {
+                        widget.onStateUpdate(true);
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
@@ -175,7 +207,7 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKee
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Text(
-                    _zoneHighlighted ? 'A discrepancy has been detected. Please verify manually.' : 'All checks passed.',
+                    _zoneHighlighted ? 'A discrepancy has been detected.' : 'All checks passed.',
                     style: const TextStyle(
                       color: Colors.white,
                     ),

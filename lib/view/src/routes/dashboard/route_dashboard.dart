@@ -280,6 +280,8 @@ class _LvRouteDashboardState extends State<LvRouteDashboard> {
                                                                       createdAt: DateTime.now(),
                                                                       filePath: storedFile.filePath,
                                                                       fileImageDisplayPaths: storedFile.fileImageDisplayPaths,
+                                                                      successConfigurationIds: [],
+                                                                      errorConfigurationIds: [],
                                                                     );
                                                                     final comparisonDocumentId =
                                                                         await LvServiceDatabase.instance.insertDocumentRevision(

@@ -38,18 +38,6 @@ class LvServiceDatabase extends GsaService {
     final appDocumentsDir = await path_provider.getApplicationSupportDirectory();
     final dbPath = path.join(appDocumentsDir.path, 'databases', 'labelverify.db');
     db = await databaseFactory.openDatabase(dbPath);
-    for (final table in <String>{
-      _documentTableId,
-      _documentCategoryTableId,
-      _documentReviewConfigurationTableId,
-      _documentRevisionsTableId,
-    }) {
-      try {
-        // await db.delete(table);
-      } catch (e) {
-        // Do nothing.
-      }
-    }
     for (final query in <String>{
       '''
       CREATE TABLE $_documentTableId (
@@ -90,7 +78,9 @@ class LvServiceDatabase extends GsaService {
           documentId INTEGER,
           createdAtIso8601 TEXT,
           filePath TEXT,
-          fileImageDisplayPaths TEXT
+          fileImageDisplayPaths TEXT,
+          successConfigurationIds TEXT,
+          errorConfigurationIds TEXT
       )
       ''',
     }) {

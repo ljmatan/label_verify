@@ -170,42 +170,30 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                       crossAxisAlignment: WrapCrossAlignment.end,
                                       alignment: WrapAlignment.end,
                                       children: [
-                                        for (final button in <({
-                                          String label,
-                                          int length,
-                                        })>{
-                                          (
-                                            label: 'CHECKLIST',
-                                            length: 0,
-                                          ),
-                                          (
-                                            label: 'RESOLVED',
-                                            length: 0,
-                                          ),
-                                          (
-                                            label: 'ERRORS',
-                                            length: 0,
-                                          ),
+                                        for (final buttonLabel in const <String>{
+                                          'CHECKLIST',
+                                          'SUCCESS',
+                                          'ERROR',
                                         }.indexed)
                                           Padding(
-                                            padding: button.$1 == 0 ? EdgeInsets.zero : const EdgeInsets.only(left: 8),
+                                            padding: buttonLabel.$1 == 0 ? EdgeInsets.zero : const EdgeInsets.only(left: 8),
                                             child: ValueListenableBuilder<int>(
                                               valueListenable: _selectedTabNotifier,
                                               builder: (context, value, child) {
                                                 return TextButton(
                                                   child: Text(
-                                                    '${button.$2.label} (${button.$2.length})',
+                                                    buttonLabel.$2,
                                                     style: TextStyle(
-                                                      color: button.$1 == value ? Colors.white : Colors.grey.shade200,
-                                                      fontWeight: button.$1 == value ? FontWeight.w900 : null,
-                                                      decoration: button.$1 == value ? TextDecoration.underline : null,
+                                                      color: buttonLabel.$1 == value ? Colors.white : Colors.grey.shade200,
+                                                      fontWeight: buttonLabel.$1 == value ? FontWeight.w900 : null,
+                                                      decoration: buttonLabel.$1 == value ? TextDecoration.underline : null,
                                                       decorationColor: Colors.white,
                                                     ),
                                                   ),
-                                                  onPressed: button.$1 == value
+                                                  onPressed: buttonLabel.$1 == value
                                                       ? null
                                                       : () {
-                                                          _selectedTabNotifier.value = button.$1;
+                                                          _selectedTabNotifier.value = buttonLabel.$1;
                                                         },
                                                 );
                                               },
@@ -222,22 +210,83 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                             child: ValueListenableBuilder(
                               valueListenable: _selectedTabNotifier,
                               builder: (context, value, child) {
-                                return ListView(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                                  children: [
-                                    for (final reviewItem in _reviewConfiguration!)
-                                      _WidgetReviewItem(
-                                        reviewItem,
-                                        documentVisualContent: _fileImageDisplays!,
-                                        comparisonDocumentVisualContent: _comparisonFileImageDisplays!,
-                                        highlightedContours: [
-                                          for (final result in _differenceResult!) result.contours,
-                                        ],
-                                        displayOnScreen: () {
-                                          _reviewSelectionKey.currentState?.displayReviewItem(reviewItem);
-                                        },
-                                      ),
-                                  ],
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    final selectedReviewItems = _reviewConfiguration!.where(
+                                      (reviewItem) {
+                                        switch (value) {
+                                          case 0:
+                                            return !widget.comparisonDocument.successConfigurationIds.contains(
+                                                  reviewItem.id,
+                                                ) &&
+                                                !widget.comparisonDocument.errorConfigurationIds.contains(
+                                                  reviewItem.id,
+                                                );
+                                          case 1:
+                                            return widget.comparisonDocument.successConfigurationIds.contains(
+                                              reviewItem.id,
+                                            );
+                                          case 2:
+                                            return widget.comparisonDocument.errorConfigurationIds.contains(
+                                              reviewItem.id,
+                                            );
+                                          default:
+                                            throw UnimplementedError('Tab value handling not implemented.');
+                                        }
+                                      },
+                                    );
+
+                                    if (selectedReviewItems.isEmpty) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context).size.width,
+                                          child: const Text(
+                                            'No review items found in the specified category.',
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    return ListView(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                                      children: [
+                                        for (final reviewItem in selectedReviewItems)
+                                          _WidgetReviewItem(
+                                            reviewItem,
+                                            documentVisualContent: _fileImageDisplays!,
+                                            comparisonDocumentVisualContent: _comparisonFileImageDisplays!,
+                                            highlightedContours: [
+                                              for (final result in _differenceResult!) result.contours,
+                                            ],
+                                            reviewed: widget.comparisonDocument.successConfigurationIds.contains(
+                                                  reviewItem.id,
+                                                ) ||
+                                                widget.comparisonDocument.errorConfigurationIds.contains(
+                                                  reviewItem.id,
+                                                ),
+                                            onStateUpdate: (value) {
+                                              switch (value) {
+                                                case null:
+                                                  widget.comparisonDocument.successConfigurationIds.remove(reviewItem.id);
+                                                  widget.comparisonDocument.errorConfigurationIds.remove(reviewItem.id);
+                                                  break;
+                                                case true:
+                                                  widget.comparisonDocument.successConfigurationIds.add(reviewItem.id);
+                                                  break;
+                                                case false:
+                                                  widget.comparisonDocument.errorConfigurationIds.add(reviewItem.id);
+                                                  break;
+                                              }
+                                              setState(() {});
+                                            },
+                                            displayOnScreen: () {
+                                              _reviewSelectionKey.currentState?.displayReviewItem(reviewItem);
+                                            },
+                                          ),
+                                      ],
+                                    );
+                                  },
                                 );
                               },
                             ),
