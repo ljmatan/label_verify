@@ -72,15 +72,11 @@ which is located in the `assets/bin` directory, and which is also shared by util
 
 ### 3.1. Middleware Running
 
-In order to run the middleware server as a standalone program, two named CLI arguments are required: `port` and `ppid`.
-
-The `port` number is specified in order to bind the program and listen to any incoming connections,
-with the `ppid` value being required to be set to `-1`.
-The latter refers to the parent process ID, which is required by the Python program in order to clear any runtime resources
-during standard operation, which refers to starting a child process from the Flutter app.
+In order to run the middleware server as a standalone program, a named `port` CLI arguments is required,
+in order to specify where to bind the program and listen to any incoming connections.
 
 ```sh
-python3 middleware/main.py --port 49152 --ppid -1
+python3 middleware/main.py --port 49152
 ```
 
 ### 3.2. Middleware Updates

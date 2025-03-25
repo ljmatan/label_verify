@@ -16,7 +16,7 @@ class ServiceCliArgs:
         parser.add_argument(
             "--ppid",
             type=int,
-            required=True,
+            default=-1,
             help="Parent process ID.",
         )
         parser.add_argument(
