@@ -33,7 +33,7 @@ class LvServicePythonRuntime extends GsaService {
   /// The method should load the binary from the assets directory, and store it to the device if not stored.
   ///
   Future<void> _processExecutable() async {
-    final assetId = 'assets/bin/python';
+    final assetId = 'assets/bin/python.exec';
     final cachedExecutablePath = LvServiceCache.instance.getString(assetId);
     if (cachedExecutablePath != null) {
       if (LvConfig.instance.binAssetUpdate) {

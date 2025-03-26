@@ -1,5 +1,5 @@
 name: label_verify
-description: "A new Flutter project."
+description: "Document Revision Verification"
 publish_to: 'none'
 version: 0.1.0
 
@@ -15,7 +15,6 @@ dependencies:
     path: /Users/matanljubas/Projects/generic_shop_app/plugins/content
   image: ^4.5.3
   collection: ^1.19.0
-  archive: ^4.0.2
   path_provider: ^2.1.5
   file_picker: ^8.1.7
   file_saver: ^0.2.14
@@ -35,4 +34,5 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/
     - assets/bin/
