@@ -161,7 +161,7 @@ class _LvRouteConfigureState extends State<LvRouteConfigure> {
                                             Tooltip(
                                               message: 'Confirm all of the current changes without exiting the screen.',
                                               child: FilledButton.icon(
-                                                label: const Text('PUBLISH'),
+                                                label: const Text('SAVE'),
                                                 icon: const Icon(Icons.save),
                                                 onPressed: () async {
                                                   await _saveChanges();

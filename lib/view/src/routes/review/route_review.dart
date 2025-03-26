@@ -1,4 +1,5 @@
 import 'dart:typed_data' as dart_typed_data;
+import 'dart:math' as dart_math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,43 @@ class _LvRouteReviewState extends State<LvRouteReview> {
   ///
   List<LvModelDocumentReviewConfiguration>? _reviewConfiguration;
 
+  ({
+    List<LvModelDocumentReviewConfiguration> checklist,
+    List<LvModelDocumentReviewConfiguration> success,
+    List<LvModelDocumentReviewConfiguration> error,
+  })? _reviewItems;
+
+  void _setReviewItems() {
+    if (_reviewConfiguration != null) {
+      _reviewItems = (
+        checklist: _reviewConfiguration!.where(
+          (reviewItem) {
+            return !widget.comparisonDocument.successConfigurationIds.contains(
+                  reviewItem.id,
+                ) &&
+                !widget.comparisonDocument.errorConfigurationIds.contains(
+                  reviewItem.id,
+                );
+          },
+        ).toList(),
+        success: _reviewConfiguration!.where(
+          (reviewItem) {
+            return widget.comparisonDocument.successConfigurationIds.contains(
+              reviewItem.id,
+            );
+          },
+        ).toList(),
+        error: _reviewConfiguration!.where(
+          (reviewItem) {
+            return widget.comparisonDocument.errorConfigurationIds.contains(
+              reviewItem.id,
+            );
+          },
+        ).toList(),
+      );
+    }
+  }
+
   /// Detected document image results, with index set in accordance with the document page number.
   ///
   List<
@@ -50,35 +88,44 @@ class _LvRouteReviewState extends State<LvRouteReview> {
         List<LvModelDiffResult> contours,
       })>? _differenceResult;
 
-  Future<void> _initialiseContentData() async {
-    final fileImageDisplays = await widget.document.getFileImageDisplays();
-    if (fileImageDisplays.isEmpty) {
-      throw Exception('Document image displays is empty.');
-    }
-    _fileImageDisplays = fileImageDisplays;
-    final comparisonFileImageDisplays = await widget.comparisonDocument.getFileImageDisplays();
-    if (comparisonFileImageDisplays.isEmpty) {
-      throw Exception('Comparison document image displays is empty.');
-    }
-    _comparisonFileImageDisplays = comparisonFileImageDisplays;
-    final reviewConfiguration = await LvServiceDatabase.instance.getDocumentReviewConfigurationsForId(
-      widget.document.id,
+  late Future<void> _initialiseContentData;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialiseContentData = Future(
+      () async {
+        final fileImageDisplays = await widget.document.getFileImageDisplays();
+        if (fileImageDisplays.isEmpty) {
+          throw Exception('Document image displays is empty.');
+        }
+        _fileImageDisplays = fileImageDisplays;
+        final comparisonFileImageDisplays = await widget.comparisonDocument.getFileImageDisplays();
+        if (comparisonFileImageDisplays.isEmpty) {
+          throw Exception('Comparison document image displays is empty.');
+        }
+        _comparisonFileImageDisplays = comparisonFileImageDisplays;
+        final reviewConfiguration = await LvServiceDatabase.instance.getDocumentReviewConfigurationsForId(
+          widget.document.id,
+        );
+        if (reviewConfiguration.isEmpty) {
+          throw Exception(
+            'No review configuration set up for this document.\n\n'
+            'This is required for document processing, and can be specified with the "REVIEW" menu.',
+          );
+        }
+        _reviewConfiguration = reviewConfiguration;
+        _setReviewItems();
+        final differenceResult = [
+          for (int i = 0; i < _fileImageDisplays!.length; i++)
+            await LvServiceImages.instance.highlightDifferences(
+              _fileImageDisplays![i],
+              _comparisonFileImageDisplays![i],
+            ),
+        ];
+        _differenceResult = differenceResult;
+      },
     );
-    if (reviewConfiguration.isEmpty) {
-      throw Exception(
-        'No review configuration set up for this document.\n\n'
-        'This is required for document processing, and can be specified with the "REVIEW" menu.',
-      );
-    }
-    _reviewConfiguration = reviewConfiguration;
-    final differenceResult = [
-      for (int i = 0; i < _fileImageDisplays!.length; i++)
-        await LvServiceImages.instance.highlightDifferences(
-          _fileImageDisplays![i],
-          _comparisonFileImageDisplays![i],
-        ),
-    ];
-    _differenceResult = differenceResult;
   }
 
   /// Key property used for accessing of the [LvWidgetReviewSelectionState] object.
@@ -99,7 +146,7 @@ class _LvRouteReviewState extends State<LvRouteReview> {
           ),
           Expanded(
             child: FutureBuilder(
-              future: _initialiseContentData(),
+              future: _initialiseContentData,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(
@@ -142,25 +189,39 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                      child: Row(
                                         children: [
-                                          Text(
-                                            widget.document.label.toUpperCase(),
-                                            textAlign: TextAlign.end,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w300,
-                                              fontSize: 12,
+                                          Tooltip(
+                                            message: 'Confirm all of the current changes without exiting the screen.',
+                                            child: FilledButton.icon(
+                                              label: const Text('SAVE'),
+                                              icon: const Icon(Icons.save),
+                                              onPressed: () async {},
                                             ),
                                           ),
-                                          Text(
-                                            widget.document.createdAt.toIso8601String().substring(0, 16).replaceAll('T', ' '),
-                                            textAlign: TextAlign.end,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w300,
-                                              fontSize: 10,
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  widget.document.label.toUpperCase(),
+                                                  textAlign: TextAlign.end,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w300,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  widget.document.createdAt.toIso8601String().substring(0, 16).replaceAll('T', ' '),
+                                                  textAlign: TextAlign.end,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w300,
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
@@ -170,10 +231,10 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                                       crossAxisAlignment: WrapCrossAlignment.end,
                                       alignment: WrapAlignment.end,
                                       children: [
-                                        for (final buttonLabel in const <String>{
-                                          'CHECKLIST',
-                                          'SUCCESS',
-                                          'ERROR',
+                                        for (final buttonLabel in <String>{
+                                          'CHECKLIST (${_reviewItems?.checklist.length})',
+                                          'SUCCESS (${_reviewItems?.success.length})',
+                                          'ERROR (${_reviewItems?.error.length})',
                                         }.indexed)
                                           Padding(
                                             padding: buttonLabel.$1 == 0 ? EdgeInsets.zero : const EdgeInsets.only(left: 8),
@@ -210,83 +271,63 @@ class _LvRouteReviewState extends State<LvRouteReview> {
                             child: ValueListenableBuilder(
                               valueListenable: _selectedTabNotifier,
                               builder: (context, value, child) {
-                                return StatefulBuilder(
-                                  builder: (context, setState) {
-                                    final selectedReviewItems = _reviewConfiguration!.where(
-                                      (reviewItem) {
-                                        switch (value) {
-                                          case 0:
-                                            return !widget.comparisonDocument.successConfigurationIds.contains(
-                                                  reviewItem.id,
-                                                ) &&
-                                                !widget.comparisonDocument.errorConfigurationIds.contains(
-                                                  reviewItem.id,
-                                                );
-                                          case 1:
-                                            return widget.comparisonDocument.successConfigurationIds.contains(
-                                              reviewItem.id,
-                                            );
-                                          case 2:
-                                            return widget.comparisonDocument.errorConfigurationIds.contains(
-                                              reviewItem.id,
-                                            );
-                                          default:
-                                            throw UnimplementedError('Tab value handling not implemented.');
-                                        }
-                                      },
-                                    );
+                                final selectedReviewItems = switch (value) {
+                                  0 => _reviewItems?.checklist,
+                                  1 => _reviewItems?.success,
+                                  2 => _reviewItems?.error,
+                                  _ => throw UnimplementedError('List at tab number $value not implemented.'),
+                                };
 
-                                    if (selectedReviewItems.isEmpty) {
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                                        child: SizedBox(
-                                          width: MediaQuery.of(context).size.width,
-                                          child: const Text(
-                                            'No review items found in the specified category.',
-                                          ),
-                                        ),
-                                      );
-                                    }
+                                if (selectedReviewItems?.isNotEmpty != true) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                                    child: SizedBox(
+                                      width: MediaQuery.of(context).size.width,
+                                      child: const Text(
+                                        'No review items found in the specified category.',
+                                      ),
+                                    ),
+                                  );
+                                }
 
-                                    return ListView(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                                      children: [
-                                        for (final reviewItem in selectedReviewItems)
-                                          _WidgetReviewItem(
-                                            reviewItem,
-                                            documentVisualContent: _fileImageDisplays!,
-                                            comparisonDocumentVisualContent: _comparisonFileImageDisplays!,
-                                            highlightedContours: [
-                                              for (final result in _differenceResult!) result.contours,
-                                            ],
-                                            reviewed: widget.comparisonDocument.successConfigurationIds.contains(
-                                                  reviewItem.id,
-                                                ) ||
-                                                widget.comparisonDocument.errorConfigurationIds.contains(
-                                                  reviewItem.id,
-                                                ),
-                                            onStateUpdate: (value) {
-                                              switch (value) {
-                                                case null:
-                                                  widget.comparisonDocument.successConfigurationIds.remove(reviewItem.id);
-                                                  widget.comparisonDocument.errorConfigurationIds.remove(reviewItem.id);
-                                                  break;
-                                                case true:
-                                                  widget.comparisonDocument.successConfigurationIds.add(reviewItem.id);
-                                                  break;
-                                                case false:
-                                                  widget.comparisonDocument.errorConfigurationIds.add(reviewItem.id);
-                                                  break;
-                                              }
-                                              setState(() {});
-                                            },
-                                            displayOnScreen: () {
-                                              _reviewSelectionKey.currentState?.displayReviewItem(reviewItem);
-                                            },
-                                          ),
-                                      ],
-                                    );
-                                  },
+                                return ListView(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                                  children: [
+                                    for (final reviewItem in selectedReviewItems!)
+                                      _WidgetReviewItem(
+                                        reviewItem,
+                                        documentVisualContent: _fileImageDisplays!,
+                                        comparisonDocumentVisualContent: _comparisonFileImageDisplays!,
+                                        highlightedContours: [
+                                          for (final result in _differenceResult!) result.contours,
+                                        ],
+                                        reviewed: widget.comparisonDocument.successConfigurationIds.contains(
+                                              reviewItem.id,
+                                            ) ||
+                                            widget.comparisonDocument.errorConfigurationIds.contains(
+                                              reviewItem.id,
+                                            ),
+                                        onStateUpdate: (value) {
+                                          switch (value) {
+                                            case null:
+                                              widget.comparisonDocument.successConfigurationIds.remove(reviewItem.id);
+                                              widget.comparisonDocument.errorConfigurationIds.remove(reviewItem.id);
+                                              break;
+                                            case true:
+                                              widget.comparisonDocument.successConfigurationIds.add(reviewItem.id);
+                                              break;
+                                            case false:
+                                              widget.comparisonDocument.errorConfigurationIds.add(reviewItem.id);
+                                              break;
+                                          }
+                                          _setReviewItems();
+                                          setState(() {});
+                                        },
+                                        displayOnScreen: () {
+                                          _reviewSelectionKey.currentState?.displayReviewItem(reviewItem);
+                                        },
+                                      ),
+                                  ],
                                 );
                               },
                             ),

@@ -45,20 +45,37 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKee
   @override
   void initState() {
     super.initState();
-    _zoneHighlighted = widget.highlightedContours[widget.reviewItem.page].any(
-      (contour) {
-        late bool overlaps;
-        if (widget.reviewItem.positionEndPercentX < contour.positionStartPercentX ||
-            widget.reviewItem.positionStartPercentX > contour.positionEndPercentX ||
-            widget.reviewItem.positionEndPercentY < contour.positionStartPercentY ||
-            widget.reviewItem.positionStartPercentY > contour.positionEndPercentY) {
-          overlaps = false;
-        } else {
-          overlaps = true;
-        }
-        return widget.reviewItem.type == LvModelDocumentReviewConfigurationType.dynamicText && !overlaps || overlaps;
-      },
-    );
+    _zoneHighlighted = widget.reviewItem.type == LvModelDocumentReviewConfigurationType.dynamicText
+        ? widget.highlightedContours[widget.reviewItem.page].every(
+            (contour) {
+              final reviewItemHorizontalContourMatch = widget.reviewItem.positionStartPercentX >= contour.positionStartPercentX &&
+                  widget.reviewItem.positionStartPercentX <= contour.positionEndPercentX;
+              final contourHorizontalReviewItemMatch = contour.positionStartPercentX >= widget.reviewItem.positionStartPercentX &&
+                  contour.positionStartPercentX <= widget.reviewItem.positionEndPercentX;
+              final reviewItemVerticalContourMatch = widget.reviewItem.positionStartPercentY >= contour.positionStartPercentY &&
+                  widget.reviewItem.positionStartPercentY <= contour.positionEndPercentY;
+              final contourVerticalReviewItemMatch = contour.positionStartPercentY >= widget.reviewItem.positionStartPercentY &&
+                  contour.positionStartPercentY <= widget.reviewItem.positionEndPercentY;
+              final overlaps = reviewItemHorizontalContourMatch && reviewItemVerticalContourMatch ||
+                  contourHorizontalReviewItemMatch && contourVerticalReviewItemMatch;
+              return !overlaps;
+            },
+          )
+        : widget.highlightedContours[widget.reviewItem.page].any(
+            (contour) {
+              final reviewItemHorizontalContourMatch = widget.reviewItem.positionStartPercentX >= contour.positionStartPercentX &&
+                  widget.reviewItem.positionStartPercentX <= contour.positionEndPercentX;
+              final contourHorizontalReviewItemMatch = contour.positionStartPercentX >= widget.reviewItem.positionStartPercentX &&
+                  contour.positionStartPercentX <= widget.reviewItem.positionEndPercentX;
+              final reviewItemVerticalContourMatch = widget.reviewItem.positionStartPercentY >= contour.positionStartPercentY &&
+                  widget.reviewItem.positionStartPercentY <= contour.positionEndPercentY;
+              final contourVerticalReviewItemMatch = contour.positionStartPercentY >= widget.reviewItem.positionStartPercentY &&
+                  contour.positionStartPercentY <= widget.reviewItem.positionEndPercentY;
+              final overlaps = reviewItemHorizontalContourMatch && reviewItemVerticalContourMatch ||
+                  contourHorizontalReviewItemMatch && contourVerticalReviewItemMatch;
+              return overlaps;
+            },
+          );
   }
 
   @override
@@ -120,7 +137,7 @@ class __WidgetReviewItemState extends State<_WidgetReviewItem> with AutomaticKee
                   top: 10,
                   right: 10,
                   child: Tooltip(
-                    message: 'Higlight content',
+                    message: 'Page ${widget.reviewItem.page + 1} - highlight content',
                     child: ElevatedButton(
                       child: const Icon(Icons.visibility),
                       onPressed: () {},
